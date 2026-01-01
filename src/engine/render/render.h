@@ -1,0 +1,79 @@
+#pragma once
+#include "sprite.h"
+#include <optional>
+#include <glm/glm.hpp>
+
+struct SDL_Renderer;
+struct SDL_FRect;
+
+namespace engine::resource
+{
+    class ResourceManager;
+}
+
+namespace engine::render
+{
+    class Camera;
+
+    /// @brief 渲染器
+    class Renderer final
+    {
+    private:
+        /// @brief 指向主SDL渲染器的非拥有指针
+        SDL_Renderer *_renderer{nullptr};
+        /// @brief 指向资源管理器的非拥有指针
+        engine::resource::ResourceManager *_resource_manager{nullptr};
+
+    public:
+        Renderer(SDL_Renderer *sdl_renderer, engine::resource::ResourceManager *resource_manager);
+        Renderer(const Renderer &) = delete;
+        Renderer &operator=(const Renderer &) = delete;
+        Renderer(Renderer &&) = delete;
+        Renderer &operator=(Renderer &&) = delete;
+
+        /// @brief 绘制纹理
+        /// @param camera
+        /// @param sprite
+        /// @param position
+        /// @param scale
+        /// @param angle
+        void drawSprite(const Camera &camera, const engine::render::Sprite &sprite, const glm::vec2 &position, const glm::vec2 &scale = {1.0f, 1.0f}, double angle = 0.0f);
+
+        /// @brief 绘制视差滚动背景
+        /// @param camera
+        /// @param sprite
+        /// @param position
+        /// @param scroll_factor 滚动因子
+        /// @param repeat 是否重复
+        /// @param scale 缩放因子
+        void drawParallx(const Camera &camera, const engine::render::Sprite &sprite, const glm::vec2 &position,
+                         const glm::vec2 &scroll_factor, const glm::bvec2 &repeat = {true, true}, const glm::vec2 &scale = {1.0f, 1.0f});
+
+        /// @brief 绘制UI
+        /// @param sprite
+        /// @param position
+        /// @param size
+        void drawUISprite(const engine::render::Sprite &sprite, const glm::vec2 &position, const std::optional<glm::vec2> &size = std::nullopt);
+
+        /// @brief 更新屏幕
+        void present();
+        /// @brief 清空屏幕
+        void clearScreen();
+
+        void setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a = 255);
+        void setDrawColorFloat(float r, float g, float b, float a = 1.0f);
+
+        SDL_Renderer *getSDLRenderer() const { return _renderer; }
+
+    private:
+        /// @brief 获取精灵的源矩形
+        /// @param sprite
+        /// @return
+        std::optional<SDL_FRect> getSpriteSrcRect(const Sprite &sprite);
+        /// @brief 判断矩形是否在视口内
+        /// @param camera
+        /// @param rect
+        /// @return
+        bool isRectInViewport(const Camera &camera, const SDL_FRect &rect);
+    };
+}

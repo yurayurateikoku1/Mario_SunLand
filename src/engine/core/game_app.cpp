@@ -3,10 +3,12 @@
 #include <SDL3_mixer/SDL_mixer.h>
 #include <spdlog/spdlog.h>
 #include "time.h"
+#include "../resource/resource_manager.h"
+#include "../render/camera.h"
+#include "../render/render.h"
 namespace engine::core
 {
     GameApp::GameApp()
-        : _time(std::make_unique<Time>())
     {
     }
     GameApp::~GameApp()
@@ -38,9 +40,8 @@ namespace engine::core
         close();
     }
 
-    bool GameApp::init()
+    bool GameApp::initSDL()
     {
-        spdlog::info("GameApp init ...");
         if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO))
         {
             spdlog::error("SDL_Init failed: {}", SDL_GetError());
@@ -58,7 +59,93 @@ namespace engine::core
             spdlog::error("SDL_CreateRenderer failed: {}", SDL_GetError());
             return false;
         }
+        SDL_SetRenderLogicalPresentation(_sdl_renderer, 640, 360, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+        return true;
+    }
+
+    bool GameApp::initTime()
+    {
+        try
+        {
+            _time = std::make_unique<Time>();
+        }
+        catch (const std::exception &e)
+        {
+            spdlog::error("Time init failed: {},{},{}", e.what(), __FILE__, __LINE__);
+            return false;
+        }
+        return true;
+    }
+
+    bool GameApp::initResourceManager()
+    {
+        try
+        {
+            _resource_manager = std::make_unique<engine::resource::ResourceManager>(_sdl_renderer);
+        }
+        catch (const std::exception &e)
+        {
+            spdlog::error("ResourceManager init failed: {},{},{}", e.what(), __FILE__, __LINE__);
+        }
+        return true;
+    }
+
+    bool GameApp::initRenderer()
+    {
+        try
+        {
+            _renderer = std::make_unique<engine::render::Renderer>(_sdl_renderer, _resource_manager.get());
+        }
+        catch (const std::exception &e)
+        {
+            spdlog::error("Renderer init failed: {},{},{}", e.what(), __FILE__, __LINE__);
+            return false;
+        }
+
+        return true;
+    }
+
+    bool GameApp::initCamera()
+    {
+        try
+        {
+            _camera = std::make_unique<engine::render::Camera>(glm::vec2(640, 360));
+        }
+        catch (const std::exception &e)
+        {
+            spdlog::error("Camera init failed: {},{},{}", e.what(), __FILE__, __LINE__);
+            return false;
+        }
+
+        return true;
+    }
+
+    bool GameApp::init()
+    {
+        spdlog::info("GameApp init ...");
+        if (!initSDL())
+        {
+            return false;
+        }
+        if (!initTime())
+        {
+            return false;
+        }
+        if (!initResourceManager())
+        {
+            return false;
+        }
+        if (!initRenderer())
+        {
+            return false;
+        }
+        if (!initCamera())
+        {
+            return false;
+        }
+
         _is_running = true;
+        spdlog::info("GameApp init success");
         return true;
     }
 
@@ -74,7 +161,7 @@ namespace engine::core
         }
     }
 
-    void GameApp::update(float dt)
+    void GameApp::update([[maybe_unused]] float dt)
     {
     }
 

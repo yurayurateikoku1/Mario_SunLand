@@ -34,12 +34,12 @@ void engine::core::Time::limitFrameRate(float current_delta_time)
     }
 }
 
-float engine::core::Time::getDeltaTime() const
+double engine::core::Time::getDeltaTime() const
 {
     return _delta_time * _time_scale;
 }
 
-float engine::core::Time::getUnScaledDeltaTime() const
+double engine::core::Time::getUnScaledDeltaTime() const
 {
     return _delta_time;
 }

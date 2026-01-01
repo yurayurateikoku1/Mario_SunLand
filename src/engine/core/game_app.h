@@ -3,6 +3,15 @@
 struct SDL_Window;
 struct SDL_Renderer;
 struct MIX_Mixer;
+namespace engine::resource
+{
+    class ResourceManager;
+}
+namespace engine::render
+{
+    class Renderer;
+    class Camera;
+}
 namespace engine::core
 {
     class Time;
@@ -13,9 +22,12 @@ namespace engine::core
         SDL_Window *_window{nullptr};
         SDL_Renderer *_sdl_renderer{nullptr};
         MIX_Mixer *_mixer = nullptr;
-        bool _is_running{nullptr};
+        bool _is_running{false};
 
         std::unique_ptr<engine::core::Time> _time{nullptr};
+        std::unique_ptr<engine::resource::ResourceManager> _resource_manager{nullptr};
+        std::unique_ptr<engine::render::Renderer> _renderer{nullptr};
+        std::unique_ptr<engine::render::Camera> _camera{nullptr};
 
     public:
         GameApp();
@@ -32,6 +44,12 @@ namespace engine::core
         void close();
 
         void run();
+
+        [[nodiscard]] bool initSDL();
+        [[nodiscard]] bool initTime();
+        [[nodiscard]] bool initResourceManager();
+        [[nodiscard]] bool initRenderer();
+        [[nodiscard]] bool initCamera();
     };
 
 }

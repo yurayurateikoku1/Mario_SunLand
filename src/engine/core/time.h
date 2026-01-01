@@ -30,8 +30,8 @@ namespace engine::core
         /// @brief 每帧开始调用 更新内部时间并计算状态
         void update();
 
-        float getDeltaTime() const;
-        float getUnScaledDeltaTime() const;
+        double getDeltaTime() const;
+        double getUnScaledDeltaTime() const;
         float getTimeScale() const { return _time_scale; }
         void setTimeScale(float scale);
         int getTargetFps() const { return _target_fps; }
