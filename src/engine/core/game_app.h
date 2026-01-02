@@ -12,9 +12,15 @@ namespace engine::render
     class Renderer;
     class Camera;
 }
+namespace engine::input
+{
+    class InputManager;
+} // namespace engine::input
+
 namespace engine::core
 {
     class Time;
+    class Config;
     /// @brief 主应用程序,初始化SDL,运行主循环
     class GameApp final
     {
@@ -28,6 +34,8 @@ namespace engine::core
         std::unique_ptr<engine::resource::ResourceManager> _resource_manager{nullptr};
         std::unique_ptr<engine::render::Renderer> _renderer{nullptr};
         std::unique_ptr<engine::render::Camera> _camera{nullptr};
+        std::unique_ptr<engine::core::Config> _config{nullptr};
+        std::unique_ptr<engine::input::InputManager> _input_manager{nullptr};
 
     public:
         GameApp();
@@ -45,11 +53,13 @@ namespace engine::core
 
         void run();
 
+        [[nodiscard]] bool initConfig();
         [[nodiscard]] bool initSDL();
         [[nodiscard]] bool initTime();
         [[nodiscard]] bool initResourceManager();
         [[nodiscard]] bool initRenderer();
         [[nodiscard]] bool initCamera();
+        [[nodiscard]] bool initInputManager();
     };
 
 }

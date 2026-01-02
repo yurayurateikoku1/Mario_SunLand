@@ -6,6 +6,8 @@
 #include "../resource/resource_manager.h"
 #include "../render/camera.h"
 #include "../render/render.h"
+#include "../input/input_manager.h"
+#include "config.h"
 namespace engine::core
 {
     GameApp::GameApp()
@@ -27,17 +29,31 @@ namespace engine::core
             spdlog::error("GameApp init failed,now is shutting down");
             return;
         }
-        _time->setTargetFps(144);
         while (_is_running)
         {
             _time->update();
             float dt = _time->getDeltaTime();
-
+            _input_manager->update();
             handleEvents();
             update(dt);
             render();
         }
         close();
+    }
+
+    bool GameApp::initConfig()
+    {
+        try
+        {
+            _config = std::make_unique<engine::core::Config>("assets/config.json");
+        }
+        catch (const std::exception &e)
+        {
+            spdlog::error("Config init failed: {},{},{}", e.what(), __FILE__, __LINE__);
+            return false;
+        }
+        spdlog::info("Config init success");
+        return true;
     }
 
     bool GameApp::initSDL()
@@ -47,7 +63,7 @@ namespace engine::core
             spdlog::error("SDL_Init failed: {}", SDL_GetError());
             return false;
         }
-        _window = SDL_CreateWindow("Mario_DiePI", 1280, 720, SDL_WINDOW_RESIZABLE);
+        _window = SDL_CreateWindow(_config->_window_title.c_str(), _config->_window_width, _config->_window_height, SDL_WINDOW_RESIZABLE);
         if (_window == nullptr)
         {
             spdlog::error("SDL_CreateWindow failed: {}", SDL_GetError());
@@ -59,7 +75,11 @@ namespace engine::core
             spdlog::error("SDL_CreateRenderer failed: {}", SDL_GetError());
             return false;
         }
-        SDL_SetRenderLogicalPresentation(_sdl_renderer, 640, 360, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+
+        int vsync_code = _config->_vsync_enabled ? SDL_RENDERER_VSYNC_ADAPTIVE : SDL_RENDERER_VSYNC_DISABLED;
+        SDL_SetRenderVSync(_sdl_renderer, vsync_code);
+
+        SDL_SetRenderLogicalPresentation(_sdl_renderer, _config->_window_width / 2, _config->_window_height / 2, SDL_LOGICAL_PRESENTATION_LETTERBOX);
         return true;
     }
 
@@ -74,6 +94,7 @@ namespace engine::core
             spdlog::error("Time init failed: {},{},{}", e.what(), __FILE__, __LINE__);
             return false;
         }
+        _time->setTargetFps(_config->_target_fps);
         return true;
     }
 
@@ -109,7 +130,7 @@ namespace engine::core
     {
         try
         {
-            _camera = std::make_unique<engine::render::Camera>(glm::vec2(640, 360));
+            _camera = std::make_unique<engine::render::Camera>(glm::vec2(_config->_window_width / 2, _config->_window_height / 2));
         }
         catch (const std::exception &e)
         {
@@ -120,9 +141,27 @@ namespace engine::core
         return true;
     }
 
+    bool GameApp::initInputManager()
+    {
+        try
+        {
+            _input_manager = std::make_unique<engine::input::InputManager>(_sdl_renderer, _config.get());
+        }
+        catch (const std::exception &e)
+        {
+            spdlog::error("InputManager init failed: {},{},{}", e.what(), __FILE__, __LINE__);
+            return false;
+        }
+        return true;
+    }
+
     bool GameApp::init()
     {
         spdlog::info("GameApp init ...");
+        if (!initConfig())
+        {
+            return false;
+        }
         if (!initSDL())
         {
             return false;
@@ -143,6 +182,10 @@ namespace engine::core
         {
             return false;
         }
+        if (!initInputManager())
+        {
+            return false;
+        }
 
         _is_running = true;
         spdlog::info("GameApp init success");
@@ -151,15 +194,13 @@ namespace engine::core
 
     void GameApp::handleEvents()
     {
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
+        if (_input_manager->getShouldQuit())
         {
-            if (event.type == SDL_EVENT_QUIT)
-            {
-                _is_running = false;
-            }
+            /* code */
+            _is_running = false;
+            return;
         }
-    }
+        }
 
     void GameApp::update([[maybe_unused]] float dt)
     {
