@@ -16,6 +16,7 @@ namespace engine::render
         bool _is_flipped = false;
 
     public:
+        Sprite() = default;
         /// @brief 构造函数
         /// @param texture_id
         /// @param source_rect

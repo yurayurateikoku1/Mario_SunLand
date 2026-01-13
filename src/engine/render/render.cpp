@@ -176,11 +176,19 @@ std::optional<SDL_FRect> engine::render::Renderer::getSpriteSrcRect(const Sprite
     auto src_rect = sprite.getSourceRect();
     if (src_rect.has_value())
     {
-        if (src_rect.value().w <= 0 || src_rect.value().h <= 0)
+        const auto &rect = src_rect.value();
+        if (rect.w <= 0 || rect.h <= 0)
         {
-            spdlog::error("Invalid source rectangle:{}", sprite.getTextureId());
+            spdlog::error("Invalid source rectangle: texture={}, rect=({},{},{},{})",
+                         sprite.getTextureId(), rect.x, rect.y, rect.w, rect.h);
             return std::nullopt;
         }
+        // 将 SDL_Rect (int) 转换为 SDL_FRect (float)
+        return SDL_FRect{
+            static_cast<float>(rect.x),
+            static_cast<float>(rect.y),
+            static_cast<float>(rect.w),
+            static_cast<float>(rect.h)};
     }
     else
     {
@@ -192,8 +200,6 @@ std::optional<SDL_FRect> engine::render::Renderer::getSpriteSrcRect(const Sprite
         }
         return result;
     }
-
-    return std::optional<SDL_FRect>();
 }
 
 bool engine::render::Renderer::isRectInViewport(const Camera &camera, const SDL_FRect &rect)
