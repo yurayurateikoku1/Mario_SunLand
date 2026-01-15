@@ -6,7 +6,10 @@ namespace engine::component
 {
     class PhysicsComponent;
 }
-
+namespace engine::object
+{
+    class GameObject;
+}
 namespace engine::physics
 {
     class PhysicsEngine
@@ -15,6 +18,7 @@ namespace engine::physics
         std::vector<engine::component::PhysicsComponent *> _physics_components;
         glm::vec2 _gravity = {0.0f, 980.0f};
         float _max_speed = 500.0f;
+        std::vector<std::pair<engine::object::GameObject *, engine::object::GameObject *>> _collision_pairs;
 
     public:
         PhysicsEngine() = default;
@@ -28,11 +32,14 @@ namespace engine::physics
         void unregisterComponent(engine::component::PhysicsComponent *component);
 
         void update(float dt);
+        void checkObjectCollision();
 
         void setGravity(const glm::vec2 &gravity) { _gravity = gravity; }
         void setMaxSpeed(float max_speed) { _max_speed = max_speed; }
         const glm::vec2 &getGravity() const { return _gravity; }
         float getMaxSpeed() const { return _max_speed; }
+
+        const std::vector<std::pair<engine::object::GameObject *, engine::object::GameObject *>> &getCollisionPairs() const { return _collision_pairs; }
     };
 
 }

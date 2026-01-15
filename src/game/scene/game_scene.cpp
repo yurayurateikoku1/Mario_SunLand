@@ -5,12 +5,14 @@
 #include "../../engine/component/transform_component.h"
 #include "../../engine/component/sprite_component.h"
 #include "../../engine/component/physics_component.h"
+#include "../../engine/component/collider_component.h"
 #include "../../engine/object/game_object.h"
 #include "../../engine/render/camera.h"
 #include "../../engine/physics/physics_engine.h"
+#include "../../engine/physics/collider.h"
 #include <spdlog/spdlog.h>
 #include <SDL3/SDL_rect.h>
-
+#include <iostream>
 game::scene::GameScene::GameScene(const std::string &name, engine::core::Context &context, engine::scene::SceneManager &scene_manager)
     : Scene(name, context, scene_manager)
 {
@@ -55,6 +57,7 @@ void game::scene::GameScene::handleInput()
     Scene::handleInput();
     // testCamera();
     testObject();
+    testCollisionPairs();
 }
 
 void game::scene::GameScene::clean()
@@ -70,7 +73,16 @@ void game::scene::GameScene::createTestObject()
     test_object->addComponent<engine::component::TransformComponent>(glm::vec2(100.0f, 100.0f));
     test_object->addComponent<engine::component::SpriteComponent>("assets/textures/Props/big-crate.png", _context.getResourceManager(), engine::utils::Alignment::CENTER);
     test_object->addComponent<engine::component::PhysicsComponent>(&_context.getPhysicsEngine(), true, 1.0f);
+    test_object->addComponent<engine::component::ColliderComponent>(std::make_unique<engine::physics::AABBCollider>(glm::vec2(64.0f, 64.0f)), engine::utils::Alignment::CENTER);
     addGameObject(std::move(test_object));
+
+    auto test_object2 = std::make_unique<engine::object::GameObject>("TestObject2");
+    auto test_object2_transform = test_object2->addComponent<engine::component::TransformComponent>(glm::vec2(200.0f, 100.0f));
+    test_object2_transform->setScale(glm::vec2(2.0f, 2.0f));
+    test_object2->addComponent<engine::component::SpriteComponent>("assets/textures/Props/big-crate.png", _context.getResourceManager(), engine::utils::Alignment::CENTER);
+    test_object2->addComponent<engine::component::PhysicsComponent>(&_context.getPhysicsEngine(), false);
+    test_object2->addComponent<engine::component::ColliderComponent>(std::make_unique<engine::physics::AABBCollider>(glm::vec2(128.0f, 128.0f)), engine::utils::Alignment::CENTER);
+    addGameObject(std::move(test_object2));
 }
 
 void game::scene::GameScene::testCamera()
@@ -120,5 +132,14 @@ void game::scene::GameScene::testObject()
     if (input_manger.isActionDown("jump") && physics)
     {
         physics->setVelocity(glm::vec2(physics->_velocity.x, -300.0f));
+    }
+}
+
+void game::scene::GameScene::testCollisionPairs()
+{
+    auto &collision_pairs = _context.getPhysicsEngine().getCollisionPairs();
+    for (auto &collision_pair : collision_pairs)
+    {
+        spdlog::info("Collision pair: {}, {}", collision_pair.first->getName(), collision_pair.second->getName());
     }
 }

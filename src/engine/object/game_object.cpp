@@ -5,6 +5,7 @@
 #include "../render/camera.h"
 
 engine::object::GameObject::GameObject(const std::string &name, const std::string &tag)
+    : _name(name), _target(tag)
 {
     spdlog::info("GameObject {} created", name);
 }
