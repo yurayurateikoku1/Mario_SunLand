@@ -4,8 +4,10 @@
 #include "../../engine/core/context.h"
 #include "../../engine/component/transform_component.h"
 #include "../../engine/component/sprite_component.h"
+#include "../../engine/component/physics_component.h"
 #include "../../engine/object/game_object.h"
 #include "../../engine/render/camera.h"
+#include "../../engine/physics/physics_engine.h"
 #include <spdlog/spdlog.h>
 #include <SDL3/SDL_rect.h>
 
@@ -31,8 +33,8 @@ void game::scene::GameScene::init()
 
     _context.getCamera().setLimitBounds(camera_bounds);
     spdlog::info("Camera bounds set to: ({}, {}) - ({}, {})",
-        camera_bounds.position.x, camera_bounds.position.y,
-        camera_bounds.size.x, camera_bounds.size.y);
+                 camera_bounds.position.x, camera_bounds.position.y,
+                 camera_bounds.size.x, camera_bounds.size.y);
 
     createTestObject();
     Scene::init();
@@ -51,7 +53,8 @@ void game::scene::GameScene::render()
 void game::scene::GameScene::handleInput()
 {
     Scene::handleInput();
-    testCamera();
+    // testCamera();
+    testObject();
 }
 
 void game::scene::GameScene::clean()
@@ -62,8 +65,11 @@ void game::scene::GameScene::clean()
 void game::scene::GameScene::createTestObject()
 {
     auto test_object = std::make_unique<engine::object::GameObject>("TestObject");
+    _test_object = test_object.get();
+
     test_object->addComponent<engine::component::TransformComponent>(glm::vec2(100.0f, 100.0f));
     test_object->addComponent<engine::component::SpriteComponent>("assets/textures/Props/big-crate.png", _context.getResourceManager(), engine::utils::Alignment::CENTER);
+    test_object->addComponent<engine::component::PhysicsComponent>(&_context.getPhysicsEngine(), true, 1.0f);
     addGameObject(std::move(test_object));
 }
 
@@ -91,5 +97,28 @@ void game::scene::GameScene::testCamera()
     {
         spdlog::info("move_left detected, camera position: {}, {}", camera.getPosition().x, camera.getPosition().y);
         camera.move(glm::vec2(-1.0f, 0.0f));
+    }
+}
+
+void game::scene::GameScene::testObject()
+{
+    if (!_test_object)
+    {
+        return;
+    }
+    auto &input_manger = _context.getInputManager();
+    auto *physics = _test_object->getComponent<engine::component::PhysicsComponent>();
+
+    if (input_manger.isActionDown("move_left"))
+    {
+        _test_object->getComponent<engine::component::TransformComponent>()->translate(glm::vec2(-1.0f, 0.0f));
+    }
+    if (input_manger.isActionDown("move_right"))
+    {
+        _test_object->getComponent<engine::component::TransformComponent>()->translate(glm::vec2(1.0f, 0.0f));
+    }
+    if (input_manger.isActionDown("jump") && physics)
+    {
+        physics->setVelocity(glm::vec2(physics->_velocity.x, -300.0f));
     }
 }

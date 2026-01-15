@@ -11,6 +11,8 @@
 #include "../object/game_object.h"
 #include "../component/transform_component.h"
 #include "../component/sprite_component.h"
+#include "../physics/physics_engine.h"
+#include "../component/physics_component.h"
 #include "../scene/scene_manager.h"
 #include "../../game/scene/game_scene.h"
 #include "config.h"
@@ -162,11 +164,25 @@ namespace engine::core
         return true;
     }
 
+    bool GameApp::initPhysicsEngine()
+    {
+        try
+        {
+            _physics_engine = std::make_unique<engine::physics::PhysicsEngine>();
+        }
+        catch (const std::exception &e)
+        {
+            spdlog::error("PhysicsEngine init failed: {},{},{}", e.what(), __FILE__, __LINE__);
+            return false;
+        }
+        return true;
+    }
+
     bool GameApp::initContext()
     {
         try
         {
-            _context = std::make_unique<engine::core::Context>(*_input_manager, *_renderer, *_resource_manager, *_camera);
+            _context = std::make_unique<engine::core::Context>(*_input_manager, *_renderer, *_resource_manager, *_camera, *_physics_engine);
         }
         catch (const std::exception &e)
         {
@@ -221,6 +237,10 @@ namespace engine::core
         {
             return false;
         }
+        if (!initPhysicsEngine())
+        {
+            return false;
+        }
         if (!initContext())
         {
             return false;
@@ -264,6 +284,8 @@ namespace engine::core
     void GameApp::close()
     {
         spdlog::info("GameApp close ...");
+        _scene_manager->close();
+        _resource_manager.reset();
         if (_sdl_renderer != nullptr)
         {
             SDL_DestroyRenderer(_sdl_renderer);

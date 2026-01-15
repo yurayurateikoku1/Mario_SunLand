@@ -3,6 +3,8 @@
 #include "scene_manager.h"
 #include "../object/game_object.h"
 #include "../render/camera.h"
+#include "../core/context.h"
+#include "../physics/physics_engine.h"
 #include <algorithm>
 engine::scene::Scene::Scene(const std::string &scene_name, engine::core::Context &context, engine::scene::SceneManager &scene_manager)
     : _scene_name(scene_name), _context(context), _scene_manager(scene_manager), _is_initialized(false)
@@ -24,6 +26,10 @@ void engine::scene::Scene::update(float dt)
     {
         return;
     }
+    // 更新物理引擎
+    _context.getPhysicsEngine().update(dt);
+
+    // 更新所有游戏对象
     for (auto it = _game_objects.begin(); it != _game_objects.end();)
     {
         if (*it && !(*it)->getNeedRemove())
