@@ -28,7 +28,7 @@ void engine::scene::Scene::update(float dt)
     }
     // 更新物理引擎
     _context.getPhysicsEngine().update(dt);
-
+    _context.getCamera().update(dt);
     // 更新所有游戏对象
     for (auto it = _game_objects.begin(); it != _game_objects.end();)
     {

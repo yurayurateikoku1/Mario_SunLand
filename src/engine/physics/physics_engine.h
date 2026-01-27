@@ -1,11 +1,13 @@
 #pragma once
 #include <vector>
 #include <glm/vec2.hpp>
-
+#include <optional>
+#include "../utils/math.h"
 namespace engine::component
 {
     class PhysicsComponent;
     class TileLayerComponent;
+    enum class TileType;
 }
 namespace engine::object
 {
@@ -21,6 +23,7 @@ namespace engine::physics
         float _max_speed = 500.0f;
         std::vector<std::pair<engine::object::GameObject *, engine::object::GameObject *>> _collision_pairs;
         std::vector<engine::component::TileLayerComponent *> _collision_tile_layers;
+        std::optional<engine::utils::Rect> _world_bounds;
 
     public:
         PhysicsEngine() = default;
@@ -48,7 +51,12 @@ namespace engine::physics
         const glm::vec2 &getGravity() const { return _gravity; }
         float getMaxSpeed() const { return _max_speed; }
 
+        void setWorldBounds(const engine::utils::Rect &world_bounds) { _world_bounds = world_bounds; }
+        const std::optional<engine::utils::Rect> &getWorldBounds() const { return _world_bounds; }
         const std::vector<std::pair<engine::object::GameObject *, engine::object::GameObject *>> &getCollisionPairs() const { return _collision_pairs; }
+        void applyWorldBounds(engine::component::PhysicsComponent *pc);
+
+        float getTileHeightAtWidth(float width, engine::component::TileType tile_type, glm::vec2 tile_size);
     };
 
 }

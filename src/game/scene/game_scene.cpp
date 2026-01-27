@@ -42,6 +42,16 @@ void game::scene::GameScene::init()
         return;
     }
 
+    auto *player_transform = _player->getComponent<engine::component::TransformComponent>();
+    if (player_transform)
+    {
+        _context.getCamera().setTarget(player_transform);
+    }
+
+    auto world_size = main_layer->getComponent<engine::component::TileLayerComponent>()->geWorldSize();
+    _context.getCamera().setLimitBounds(engine::utils::Rect(glm::vec2{0.0f}, world_size));
+
+    _context.getPhysicsEngine().setWorldBounds(engine::utils::Rect(glm::vec2{0.0f}, world_size));
     Scene::init();
 }
 

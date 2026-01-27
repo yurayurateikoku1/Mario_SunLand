@@ -28,14 +28,18 @@ namespace engine::component
         /// @brief 静止可碰撞
         SOLID,
         /// @brief 单向静止可碰撞
-        UNSOLID,
+        UNISOLID,
         /// @brief 斜坡瓦片,高度左0右1
         SLOPE_0_1,
         /// @brief 斜坡瓦片,高度右0左1
         SLOPE_1_0,
+        /// @brief 斜坡瓦片,高度左0右1/2
         SLOPE_0_2,
+        /// @brief 斜坡瓦片,高度左1/2右1
         SLOPE_2_1,
+        /// @brief 斜坡瓦片,高度左1右1/2
         SLOPE_1_2,
+        /// @brief 斜坡瓦片,高度左1/2右0
         SLOPE_2_0,
         HAZARD,
         LADDER,

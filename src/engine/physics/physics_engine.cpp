@@ -52,6 +52,8 @@ void engine::physics::PhysicsEngine::update(float dt)
 
         // 处理瓦片层碰撞
         resolveTileCollision(pc, dt);
+
+        applyWorldBounds(pc);
     }
     //  检查碰撞
     checkObjectCollision();
@@ -185,6 +187,18 @@ void engine::physics::PhysicsEngine::resolveTileCollision(engine::component::Phy
                 new_obj_pos.x = layer_offset.x + tile_x * tile_size.x - obj_size.x;
                 pc->_velocity.x = 0.0f;
             }
+            else
+            {
+                auto width_right = new_obj_pos.x + obj_size.x - tile_x * tile_size.x;
+                auto height_right = getTileHeightAtWidth(width_right, tile_type_bottom, tile_size);
+                if (height_right > 0.0f)
+                {
+                    if (new_obj_pos.y > (tile_y_bottom + 1) * layer->getTileSize().y - obj_size.y - height_right)
+                    {
+                        new_obj_pos.y = (tile_y_bottom + 1) * layer->getTileSize().y - obj_size.y - height_right;
+                    }
+                }
+            }
         }
         else if (ds.x < 0.0f)
         {
@@ -200,6 +214,18 @@ void engine::physics::PhysicsEngine::resolveTileCollision(engine::component::Phy
             {
                 new_obj_pos.x = layer_offset.x + (tile_x + 1) * tile_size.x;
                 pc->_velocity.x = 0.0f;
+            }
+            else
+            {
+                auto width_left = new_obj_pos.x - tile_x * tile_size.x;
+                auto height_left = getTileHeightAtWidth(width_left, tile_type_bottom, tile_size);
+                if (height_left > 0.0f)
+                {
+                    if (new_obj_pos.y > (tile_y_bottom + 1) * layer->getTileSize().y - obj_size.y - height_left)
+                    {
+                        new_obj_pos.y = (tile_y_bottom + 1) * layer->getTileSize().y - obj_size.y - height_left;
+                    }
+                }
             }
         }
 
@@ -223,12 +249,28 @@ void engine::physics::PhysicsEngine::resolveTileCollision(engine::component::Phy
                              static_cast<int>(tile_type_left), static_cast<int>(tile_type_right));
             }
 
-            if (tile_type_left == engine::component::TileType::SOLID || tile_type_right == engine::component::TileType::SOLID)
+            if (tile_type_left == engine::component::TileType::SOLID || tile_type_right == engine::component::TileType::SOLID || tile_type_left == engine::component::TileType::UNISOLID || tile_type_right == engine::component::TileType::UNISOLID)
             {
                 auto corrected_y = layer_offset.y + tile_y * tile_size.y - obj_size.y;
                 spdlog::info("Y collision DOWN: corrected_y={}", corrected_y);
                 new_obj_pos.y = corrected_y;
                 pc->_velocity.y = 0.0f;
+            }
+            else
+            {
+                auto width_left = new_obj_pos.x - tile_x_left * tile_size.x;
+                auto width_right = new_obj_pos.x + obj_size.x - tile_x_right * tile_size.x;
+                auto height_left = getTileHeightAtWidth(width_left, tile_type_left, tile_size);
+                auto height_right = getTileHeightAtWidth(width_right, tile_type_right, tile_size);
+                auto height = glm::max(height_left, height_right);
+                if (height > 0.0f)
+                {
+                    if (new_obj_pos.y > (tile_y + 1) * layer->getTileSize().y - obj_size.y - height)
+                    {
+                        new_obj_pos.y = (tile_y + 1) * layer->getTileSize().y - obj_size.y - height;
+                        pc->_velocity.y = 0.0f;
+                    }
+                }
             }
         }
         else if (ds.y < 0.0f)
@@ -309,5 +351,62 @@ void engine::physics::PhysicsEngine::resolveSolidObjectCollisions(engine::object
                 move_pc->_velocity.y = 0.0f;
             }
         }
+    }
+}
+
+void engine::physics::PhysicsEngine::applyWorldBounds(engine::component::PhysicsComponent *pc)
+{
+    if (!pc || !_world_bounds)
+        return;
+
+    // 只限定左、上、右边界，不限定下边界，以碰撞盒作为判断依据
+    auto *obj = pc->getOwner();
+    auto *cc = obj->getComponent<engine::component::ColliderComponent>();
+    auto *tc = obj->getComponent<engine::component::TransformComponent>();
+    auto world_aabb = cc->getWorldAABB();
+    auto obj_pos = world_aabb.position;
+    auto obj_size = world_aabb.size;
+
+    // 检查左边界
+    if (obj_pos.x < _world_bounds->position.x)
+    {
+        pc->_velocity.x = 0.0f;
+        obj_pos.x = _world_bounds->position.x;
+    }
+    // 检查上边界
+    if (obj_pos.y < _world_bounds->position.y)
+    {
+        pc->_velocity.y = 0.0f;
+        obj_pos.y = _world_bounds->position.y;
+    }
+    // 检查右边界
+    if (obj_pos.x + obj_size.x > _world_bounds->position.x + _world_bounds->size.x)
+    {
+        pc->_velocity.x = 0.0f;
+        obj_pos.x = _world_bounds->position.x + _world_bounds->size.x - obj_size.x;
+    }
+    // 更新物体位置(使用translate方法，新位置 - 旧位置)
+    tc->translate(obj_pos - world_aabb.position);
+}
+
+float engine::physics::PhysicsEngine::getTileHeightAtWidth(float width, engine::component::TileType tile_type, glm::vec2 tile_size)
+{
+    auto rel_x = glm::clamp(width / tile_size.x, 0.0f, 1.0f);
+    switch (tile_type)
+    {
+    case engine::component::TileType::SLOPE_0_1:
+        return rel_x * tile_size.y;
+    case engine::component::TileType::SLOPE_0_2:
+        return rel_x * tile_size.y * 0.5f;
+    case engine::component::TileType::SLOPE_2_1:
+        return rel_x * tile_size.y * 0.5f + tile_size.y * 0.5f;
+    case engine::component::TileType::SLOPE_1_0:
+        return (1.0f - rel_x) * tile_size.y;
+    case engine::component::TileType::SLOPE_2_0:
+        return (1.0f - rel_x) * tile_size.y * 0.5f;
+    case engine::component::TileType::SLOPE_1_2:
+        return (1.0f - rel_x) * tile_size.y * 0.5f + tile_size.y * 0.5f;
+    default:
+        return 0.0f;
     }
 }
