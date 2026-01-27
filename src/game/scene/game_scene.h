@@ -10,7 +10,7 @@ namespace game::scene
     /// @brief 主要的游戏场景
     class GameScene final : public engine::scene::Scene
     {
-        engine::object::GameObject *_test_object{nullptr};
+        engine::object::GameObject *_player{nullptr};
 
     public:
         GameScene(const std::string &name, engine::core::Context &context, engine::scene::SceneManager &scene_manager);
@@ -21,9 +21,8 @@ namespace game::scene
         void clean() override;
 
     private:
-        void createTestObject();
         void testCamera();
-        void testObject();
+        void testPlayer();
         void testCollisionPairs();
     };
 }

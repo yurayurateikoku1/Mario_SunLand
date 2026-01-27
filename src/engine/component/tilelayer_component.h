@@ -12,6 +12,10 @@ namespace engine::core
 {
     class Context;
 }
+namespace engine::physics
+{
+    class PhysicsEngine;
+}
 namespace engine::component
 {
     /// @brief 瓦片类型
@@ -56,13 +60,14 @@ namespace engine::component
         std::vector<TileInfo> _tiles;
         glm::vec2 _offset{0.0f, 0.0f};
         bool _is_hidden = false;
+        engine::physics::PhysicsEngine *_physics_engine = nullptr;
 
     public:
         TileLayerComponent() = default;
         TileLayerComponent(const glm::ivec2 &tile_size, const glm::ivec2 &map_size, std::vector<TileInfo> &&tiles);
 
-        const TileInfo *getTileInfoAt(glm::vec2 pos) const;
-        TileType getTileTypeAt(glm::vec2 pos) const;
+        const TileInfo *getTileInfoAt(glm::ivec2 pos) const;
+        TileType getTileTypeAt(glm::ivec2 pos) const;
         TileType getTileTypeAtWorldPos(const glm::vec2 &pos) const;
 
         glm::ivec2 getTileSize() const { return _tile_size; };
@@ -74,10 +79,12 @@ namespace engine::component
 
         void setOffset(const glm::vec2 &offset) { _offset = offset; };
         void setHidden(bool is_hidden) { _is_hidden = is_hidden; };
+        void setPhysicsEngine(engine::physics::PhysicsEngine *physics_engine) { _physics_engine = physics_engine; }
 
     protected:
         void init() override;
         void update(float dt, engine::core::Context &) override {}
         void render(engine::core::Context &) override;
+        void clean() override;
     };
 }

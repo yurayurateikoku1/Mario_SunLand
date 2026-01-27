@@ -11,7 +11,7 @@ engine::component::PhysicsComponent::PhysicsComponent(engine::physics::PhysicsEn
     {
         spdlog::error("Physics engine is null");
     }
-    spdlog::info("Physics component created");
+    spdlog::info("Physics component created, useGravity={}", _use_gravity);
 }
 
 void engine::component::PhysicsComponent::init()

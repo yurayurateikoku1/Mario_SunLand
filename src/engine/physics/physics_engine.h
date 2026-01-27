@@ -5,6 +5,7 @@
 namespace engine::component
 {
     class PhysicsComponent;
+    class TileLayerComponent;
 }
 namespace engine::object
 {
@@ -19,6 +20,7 @@ namespace engine::physics
         glm::vec2 _gravity = {0.0f, 980.0f};
         float _max_speed = 500.0f;
         std::vector<std::pair<engine::object::GameObject *, engine::object::GameObject *>> _collision_pairs;
+        std::vector<engine::component::TileLayerComponent *> _collision_tile_layers;
 
     public:
         PhysicsEngine() = default;
@@ -31,8 +33,15 @@ namespace engine::physics
         void registerComponent(engine::component::PhysicsComponent *component);
         void unregisterComponent(engine::component::PhysicsComponent *component);
 
+        void registerCollisionTileLayer(engine::component::TileLayerComponent *tile_layer);
+        void unregisterCollisionTileLayer(engine::component::TileLayerComponent *tile_layer);
+
         void update(float dt);
         void checkObjectCollision();
+
+        void resolveTileCollision(engine::component::PhysicsComponent *pc, float dt);
+
+        void resolveSolidObjectCollisions(engine::object::GameObject *move_obj, engine::object::GameObject *solid_obj);
 
         void setGravity(const glm::vec2 &gravity) { _gravity = gravity; }
         void setMaxSpeed(float max_speed) { _max_speed = max_speed; }

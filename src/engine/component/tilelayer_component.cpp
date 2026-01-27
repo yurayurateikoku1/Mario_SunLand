@@ -3,6 +3,7 @@
 #include "../core/context.h"
 #include "../render/render.h"
 #include "../render/camera.h"
+#include "../physics/physics_engine.h"
 #include <spdlog/spdlog.h>
 
 engine::component::TileLayerComponent::TileLayerComponent(const glm::ivec2 &tile_size, const glm::ivec2 &map_size, std::vector<TileInfo> &&tiles)
@@ -18,25 +19,24 @@ engine::component::TileLayerComponent::TileLayerComponent(const glm::ivec2 &tile
     spdlog::info("TileLayerComponent created");
 }
 
-const engine::component::TileInfo *engine::component::TileLayerComponent::getTileInfoAt(glm::vec2 pos) const
+const engine::component::TileInfo *engine::component::TileLayerComponent::getTileInfoAt(glm::ivec2 pos) const
 {
-    if (pos.x <= 0 || pos.x >= _map_size.x || pos.y <= 0 || pos.y >= _map_size.y)
+    if (pos.x < 0 || pos.x >= _map_size.x || pos.y < 0 || pos.y >= _map_size.y)
     {
-        spdlog::warn("TileLayerComponent: pos out of range");
+        // 越界是正常情况，返回 nullptr 表示空瓦片
         return nullptr;
     }
-    size_t index = static_cast<size_t>((pos.y) * _map_size.x + pos.x);
+    size_t index = static_cast<size_t>(pos.y * _map_size.x + pos.x);
 
     if (index < _tiles.size())
     {
-        /* code */
         return &_tiles[index];
     }
 
     return nullptr;
 }
 
-engine::component::TileType engine::component::TileLayerComponent::getTileTypeAt(glm::vec2 pos) const
+engine::component::TileType engine::component::TileLayerComponent::getTileTypeAt(glm::ivec2 pos) const
 {
     const TileInfo *info = getTileInfoAt(pos);
     return info ? info->type : TileType::EMPTY;
@@ -95,5 +95,13 @@ void engine::component::TileLayerComponent::render(engine::core::Context &contex
                 rendered_count++;
             }
         }
+    }
+}
+
+void engine::component::TileLayerComponent::clean()
+{
+    if (_physics_engine)
+    {
+        _physics_engine->unregisterCollisionTileLayer(this);
     }
 }
