@@ -31,6 +31,12 @@ namespace engine::component
         /// @brief 主件是否启用
         bool _enabled = true;
 
+        /// 碰撞状态标志
+        bool _collided_below = false;
+        bool _collided_above = false;
+        bool _collided_left = false;
+        bool _collided_right = false;
+
     public:
         PhysicsComponent(engine::physics::PhysicsEngine *physics_engine, bool use_gravity = true, float mass = 1.0f);
         ~PhysicsComponent() override = default;
@@ -55,6 +61,24 @@ namespace engine::component
         void setEnabled(bool enabled) { _enabled = enabled; }
         void setVelocity(const glm::vec2 &velocity) { _velocity = velocity; }
         TransformComponent *getTransform() const { return _transform; }
+
+        void resetCollidedFlags()
+        {
+            _collided_below = false;
+            _collided_above = false;
+            _collided_left = false;
+            _collided_right = false;
+        }
+
+        void setCollidedBelow(bool collided) { _collided_below = collided; }
+        void setCollidedAbove(bool collided) { _collided_above = collided; }
+        void setCollidedLeft(bool collided) { _collided_left = collided; }
+        void setCollidedRight(bool collided) { _collided_right = collided; }
+
+        bool getCollidedBelow() const { return _collided_below; }
+        bool getCollidedAbove() const { return _collided_above; }
+        bool getCollidedLeft() const { return _collided_left; }
+        bool getCollidedRight() const { return _collided_right; }
 
     private:
         void init() override;

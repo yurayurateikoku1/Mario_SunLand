@@ -21,8 +21,7 @@ namespace game::scene
         void clean() override;
 
     private:
-        void testCamera();
-        void testPlayer();
-        void testCollisionPairs();
+        [[nodiscard]] bool initlevel();
+        [[nodiscard]] bool initplayer();
     };
 }

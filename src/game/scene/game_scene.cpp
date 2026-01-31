@@ -7,6 +7,7 @@
 #include "../../engine/component/physics_component.h"
 #include "../../engine/component/collider_component.h"
 #include "../../engine/component/tilelayer_component.h"
+#include "../component/player_component.h"
 #include "../../engine/object/game_object.h"
 #include "../../engine/render/camera.h"
 #include "../../engine/physics/physics_engine.h"
@@ -22,37 +23,29 @@ game::scene::GameScene::GameScene(const std::string &name, engine::core::Context
 
 void game::scene::GameScene::init()
 {
-    engine::scene::LevelLoader level_loader;
-    level_loader.loadLevel("assets/maps/level1.tmj", *this);
-
-    auto *main_layer = findGameObjectByName("main");
-    if (main_layer)
+    if (_is_initialized)
     {
-        auto *tile_layer = main_layer->getComponent<engine::component::TileLayerComponent>();
-        if (tile_layer)
-        {
-            _context.getPhysicsEngine().registerCollisionTileLayer(tile_layer);
-        }
+        spdlog::warn("GameScene is already initialized");
+        return;
     }
+    spdlog::info("GameScene initializing ...");
 
-    _player = findGameObjectByName("player");
-    if (!_player)
+    if (!initlevel())
     {
-        spdlog::error("Player not found");
+        spdlog::error("GameScene initlevel failed");
+        _context.getInputManager().setShouldQuit(true);
         return;
     }
 
-    auto *player_transform = _player->getComponent<engine::component::TransformComponent>();
-    if (player_transform)
+    if (!initplayer())
     {
-        _context.getCamera().setTarget(player_transform);
+        spdlog::error("GameScene initplayer failed");
+        _context.getInputManager().setShouldQuit(true);
+        return;
     }
 
-    auto world_size = main_layer->getComponent<engine::component::TileLayerComponent>()->geWorldSize();
-    _context.getCamera().setLimitBounds(engine::utils::Rect(glm::vec2{0.0f}, world_size));
-
-    _context.getPhysicsEngine().setWorldBounds(engine::utils::Rect(glm::vec2{0.0f}, world_size));
     Scene::init();
+    spdlog::info("GameScene initialized");
 }
 
 void game::scene::GameScene::update(float dt)
@@ -68,7 +61,6 @@ void game::scene::GameScene::render()
 void game::scene::GameScene::handleInput()
 {
     Scene::handleInput();
-    testPlayer();
 }
 
 void game::scene::GameScene::clean()
@@ -76,74 +68,62 @@ void game::scene::GameScene::clean()
     Scene::clean();
 }
 
-void game::scene::GameScene::testCamera()
+bool game::scene::GameScene::initlevel()
 {
-    auto &camera = _context.getCamera();
-    auto &input_manager = _context.getInputManager();
+    engine::scene::LevelLoader level_loader;
+    if (!level_loader.loadLevel("assets/maps/level1.tmj", *this))
+    {
+        spdlog::error("Failed to load level");
+        return false;
+    }
 
-    if (input_manager.isActionDown("move_down"))
+    auto *main_layer = findGameObjectByName("main");
+    if (!main_layer)
     {
-        spdlog::info("move_down detected, camera position: {}, {}", camera.getPosition().x, camera.getPosition().y);
-        camera.move(glm::vec2(0.0f, 1.0f));
+        spdlog::error("Failed to find main layer");
+        return false;
     }
-    if (input_manager.isActionDown("move_up"))
+
+    auto *tile_layer = main_layer->getComponent<engine::component::TileLayerComponent>();
+    if (!tile_layer)
     {
-        spdlog::info("move_up detected, camera position: {}, {}", camera.getPosition().x, camera.getPosition().y);
-        camera.move(glm::vec2(0.0f, -1.0f));
+        spdlog::error("Failed to find tile layer component");
+        return false;
     }
-    if (input_manager.isActionDown("move_right"))
-    {
-        spdlog::info("move_right detected, camera position: {}, {}", camera.getPosition().x, camera.getPosition().y);
-        camera.move(glm::vec2(1.0f, 0.0f));
-    }
-    if (input_manager.isActionDown("move_left"))
-    {
-        spdlog::info("move_left detected, camera position: {}, {}", camera.getPosition().x, camera.getPosition().y);
-        camera.move(glm::vec2(-1.0f, 0.0f));
-    }
+    _context.getPhysicsEngine().registerCollisionTileLayer(tile_layer);
+    spdlog::info("GameScene initlevel success");
+
+    auto world_size = main_layer->getComponent<engine::component::TileLayerComponent>()->geWorldSize();
+    _context.getCamera().setLimitBounds(engine::utils::Rect(glm::vec2(0, 0), world_size));
+
+    _context.getPhysicsEngine().setWorldBounds(engine::utils::Rect(glm::vec2(0, 0), world_size));
+
+    return true;
 }
 
-void game::scene::GameScene::testPlayer()
+bool game::scene::GameScene::initplayer()
 {
+    _player = findGameObjectByName("player");
     if (!_player)
     {
-        return;
-    }
-    auto &input_manger = _context.getInputManager();
-    auto *physics = _player->getComponent<engine::component::PhysicsComponent>();
-    if (!physics)
-    {
-        return;
+        spdlog::error("Failed to find player");
+        return false;
     }
 
-    if (input_manger.isActionDown("move_left"))
+    auto *player_component = _player->addComponent<game::component::PlayerComponent>();
+    if (!player_component)
     {
-        physics->_velocity.x = -100.0f;
-    }
-    else
-    {
-        physics->_velocity.x *= 0.9f;
+        spdlog::error("Failed to add player component");
+        return false;
     }
 
-    if (input_manger.isActionDown("move_right"))
+    auto *player_transform = _player->getComponent<engine::component::TransformComponent>();
+    if (!player_transform)
     {
-        physics->_velocity.x = 100.0f;
+        spdlog::error("Failed to find player transform component");
+        return false;
     }
-    else
-    {
-        physics->_velocity.x *= 0.9f;
-    }
-    if (input_manger.isActionDown("jump"))
-    {
-        physics->_velocity.y = -400.0f;
-    }
-}
+    _context.getCamera().setTarget(player_transform);
 
-void game::scene::GameScene::testCollisionPairs()
-{
-    auto &collision_pairs = _context.getPhysicsEngine().getCollisionPairs();
-    for (auto &collision_pair : collision_pairs)
-    {
-        spdlog::info("Collision pair: {}, {}", collision_pair.first->getName(), collision_pair.second->getName());
-    }
+    return true;
 }

@@ -41,6 +41,9 @@ void engine::physics::PhysicsEngine::update(float dt)
         {
             continue;
         }
+
+        pc->resetCollidedFlags();
+
         // 应用重力
         if (pc->getUseGravity())
         {
@@ -186,6 +189,7 @@ void engine::physics::PhysicsEngine::resolveTileCollision(engine::component::Phy
                 // 速度归零，x方向移动到贴着墙的位置
                 new_obj_pos.x = layer_offset.x + tile_x * tile_size.x - obj_size.x;
                 pc->_velocity.x = 0.0f;
+                pc->setCollidedRight(true);
             }
             else
             {
@@ -197,6 +201,7 @@ void engine::physics::PhysicsEngine::resolveTileCollision(engine::component::Phy
                     {
                         new_obj_pos.y = (tile_y_bottom + 1) * layer->getTileSize().y - obj_size.y - height_right;
                     }
+                    pc->setCollidedBelow(true);
                 }
             }
         }
@@ -214,6 +219,7 @@ void engine::physics::PhysicsEngine::resolveTileCollision(engine::component::Phy
             {
                 new_obj_pos.x = layer_offset.x + (tile_x + 1) * tile_size.x;
                 pc->_velocity.x = 0.0f;
+                pc->setCollidedLeft(true);
             }
             else
             {
@@ -225,6 +231,7 @@ void engine::physics::PhysicsEngine::resolveTileCollision(engine::component::Phy
                     {
                         new_obj_pos.y = (tile_y_bottom + 1) * layer->getTileSize().y - obj_size.y - height_left;
                     }
+                    pc->setCollidedBelow(true);
                 }
             }
         }
@@ -241,20 +248,12 @@ void engine::physics::PhysicsEngine::resolveTileCollision(engine::component::Phy
             auto tile_type_left = layer->getTileTypeAt({tile_x_left, tile_y});
             auto tile_type_right = layer->getTileTypeAt({tile_x_right, tile_y});
 
-            // 调试日志：每60帧输出一次
-            if (should_log)
-            {
-                spdlog::info("Y check DOWN: bottom_y={}, tile=({},{}) to ({},{}), types=({},{})",
-                             bottom_y, tile_x_left, tile_y, tile_x_right, tile_y,
-                             static_cast<int>(tile_type_left), static_cast<int>(tile_type_right));
-            }
-
             if (tile_type_left == engine::component::TileType::SOLID || tile_type_right == engine::component::TileType::SOLID || tile_type_left == engine::component::TileType::UNISOLID || tile_type_right == engine::component::TileType::UNISOLID)
             {
                 auto corrected_y = layer_offset.y + tile_y * tile_size.y - obj_size.y;
-                spdlog::info("Y collision DOWN: corrected_y={}", corrected_y);
                 new_obj_pos.y = corrected_y;
                 pc->_velocity.y = 0.0f;
+                pc->setCollidedBelow(true);
             }
             else
             {
@@ -269,6 +268,7 @@ void engine::physics::PhysicsEngine::resolveTileCollision(engine::component::Phy
                     {
                         new_obj_pos.y = (tile_y + 1) * layer->getTileSize().y - obj_size.y - height;
                         pc->_velocity.y = 0.0f;
+                        pc->setCollidedBelow(true);
                     }
                 }
             }
@@ -287,6 +287,7 @@ void engine::physics::PhysicsEngine::resolveTileCollision(engine::component::Phy
             {
                 new_obj_pos.y = layer_offset.y + (tile_y + 1) * tile_size.y;
                 pc->_velocity.y = 0.0f;
+                pc->setCollidedAbove(true);
             }
         }
     }
@@ -322,6 +323,7 @@ void engine::physics::PhysicsEngine::resolveSolidObjectCollisions(engine::object
             if (move_pc->_velocity.x > 0.0f)
             {
                 move_pc->_velocity.x = 0.0f;
+                move_pc->setCollidedRight(true);
             }
         }
         else
@@ -330,6 +332,7 @@ void engine::physics::PhysicsEngine::resolveSolidObjectCollisions(engine::object
             if (move_pc->_velocity.x < 0.0f)
             {
                 move_pc->_velocity.x = 0.0f;
+                move_pc->setCollidedLeft(true);
             }
         }
     }
@@ -341,6 +344,7 @@ void engine::physics::PhysicsEngine::resolveSolidObjectCollisions(engine::object
             if (move_pc->_velocity.y > 0.0f)
             {
                 move_pc->_velocity.y = 0.0f;
+                move_pc->setCollidedBelow(true);
             }
         }
         else
@@ -349,6 +353,7 @@ void engine::physics::PhysicsEngine::resolveSolidObjectCollisions(engine::object
             if (move_pc->_velocity.y < 0.0f)
             {
                 move_pc->_velocity.y = 0.0f;
+                move_pc->setCollidedAbove(true);
             }
         }
     }
