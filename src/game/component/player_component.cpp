@@ -6,6 +6,7 @@
 #include "../../engine/component/transform_component.h"
 #include "../../engine/component/physics_component.h"
 #include "../../engine/component/sprite_component.h"
+#include "../../engine/component/animation_component.h"
 #include "../../engine/input/input_manager.h"
 #include <utility>
 #include <typeinfo>
@@ -23,7 +24,9 @@ void game::component::PlayerComponent::init()
     _transform_component = _owner->getComponent<engine::component::TransformComponent>();
     _physics_component = _owner->getComponent<engine::component::PhysicsComponent>();
     _sprite_component = _owner->getComponent<engine::component::SpriteComponent>();
-    if (!_transform_component || !_physics_component || !_sprite_component)
+    _animation_component = _owner->getComponent<engine::component::AnimationComponent>();
+
+    if (!_transform_component || !_physics_component || !_sprite_component || !_animation_component)
     {
         spdlog::error("PlayerComponent: component is not set.");
         return;

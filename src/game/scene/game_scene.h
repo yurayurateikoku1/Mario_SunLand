@@ -23,5 +23,6 @@ namespace game::scene
     private:
         [[nodiscard]] bool initlevel();
         [[nodiscard]] bool initplayer();
+        [[nodiscard]] bool initEnemyAndItem();
     };
 }

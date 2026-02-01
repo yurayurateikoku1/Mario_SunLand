@@ -5,6 +5,8 @@
 #include "../component/tilelayer_component.h"
 #include "../component/collider_component.h"
 #include "../component/physics_component.h"
+#include "../component/animation_component.h"
+#include "../../engine/render/animation.h"
 #include "../scene/scene.h"
 #include "../core/context.h"
 #include "../resource/resource_manager.h"
@@ -263,9 +265,75 @@ void engine::scene::LevelLoader::loadObjectLayer(const nlohmann::json &layer_jso
                     game_object->addComponent<engine::component::PhysicsComponent>(&scene.getContext().getPhysicsEngine(), gravity.value());
                 }
             }
+
+            // 获取动画信息并设置
+            auto anim_string = getTileProperty<std::string>(tile_json, "animation");
+            if (anim_string)
+            {
+                nlohmann::json anim_json;
+                try
+                {
+                    anim_json = nlohmann::json::parse(anim_string.value());
+                }
+                catch (const nlohmann::json::exception &e)
+                {
+                    spdlog::error("Failed to parse animation json: {},{},{},{}", anim_string.value(), e.what(), __FILE__, __LINE__);
+                    continue;
+                }
+                auto *ac = game_object->addComponent<engine::component::AnimationComponent>();
+                addAnimation(anim_json, ac, src_size);
+            }
+
             scene.addGameObject(std::move(game_object));
             spdlog::info("Object loaded: {}", object_name);
         }
+    }
+}
+
+void engine::scene::LevelLoader::addAnimation(const nlohmann::json &anim_json, engine::component::AnimationComponent *ac, const glm::vec2 &sprite_size)
+{
+    if (!anim_json.is_object() || !ac)
+    {
+        spdlog::error("Invalid animation json or animation component");
+        return;
+    }
+
+    for (const auto &anim : anim_json.items())
+    {
+        const std::string &anim_name = anim.key();
+        const auto anim_info = anim.value();
+        if (!anim_info.is_object())
+        {
+            spdlog::warn("Invalid animation json: {}", anim_name);
+            continue;
+        }
+        auto duration_ms = anim_info.value("duration", 100);
+        auto duration = static_cast<float>(duration_ms) / 1000.0f;
+        auto row = anim_info.value("row", 0);
+
+        if (!anim_info.contains("frames") || !anim_info["frames"].is_array())
+        {
+            spdlog::warn("Invalid animation json: {}", anim_name);
+            continue;
+        }
+
+        auto animation = std::make_unique<engine::render::Animation>(anim_name);
+
+        for (const auto &frame : anim_info["frames"])
+        {
+            if (!frame.is_number_integer())
+            {
+                spdlog::warn("Invalid animation json: {}", anim_name);
+                continue;
+            }
+            auto column = frame.get<int>();
+            SDL_Rect src_rect =
+                {
+                    column * sprite_size.x, row * sprite_size.y, sprite_size.x, sprite_size.y};
+            animation->addFrame(src_rect, duration);
+        }
+
+        ac->addAnimation(std::move(animation));
     }
 }
 

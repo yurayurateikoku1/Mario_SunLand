@@ -11,6 +11,7 @@
 #include <glm/common.hpp>
 void game::component::state::WalkState::enter()
 {
+    playerAnimation("walk");
 }
 
 void game::component::state::WalkState::exit()

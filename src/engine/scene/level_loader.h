@@ -5,6 +5,7 @@ namespace engine::component
 {
     struct TileInfo;
     enum class TileType;
+    class AnimationComponent;
 }
 namespace engine::utils
 {
@@ -34,6 +35,8 @@ namespace engine::scene
         void loadImageLayer(const nlohmann::json &layer_json, Scene &scene);
         void loadTileLayer(const nlohmann::json &layer_json, Scene &scene);
         void loadObjectLayer(const nlohmann::json &layer_json, Scene &scene);
+
+        void addAnimation(const nlohmann::json &anim_json, engine::component::AnimationComponent *ac, const glm::vec2 &sprite_size);
 
         /// @brief 从瓦片json中获取属性
         /// @tparam T

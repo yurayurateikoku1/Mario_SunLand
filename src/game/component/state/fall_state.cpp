@@ -13,6 +13,7 @@
 
 void game::component::state::FallState::enter()
 {
+    playerAnimation("fall");
 }
 
 void game::component::state::FallState::exit()

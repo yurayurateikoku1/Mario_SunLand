@@ -7,9 +7,11 @@
 #include "../../engine/component/physics_component.h"
 #include "../../engine/component/collider_component.h"
 #include "../../engine/component/tilelayer_component.h"
+#include "../../engine/component/animation_component.h"
 #include "../component/player_component.h"
 #include "../../engine/object/game_object.h"
 #include "../../engine/render/camera.h"
+#include "../../engine/render/animation.h"
 #include "../../engine/physics/physics_engine.h"
 #include "../../engine/physics/collider.h"
 #include <spdlog/spdlog.h>
@@ -40,6 +42,13 @@ void game::scene::GameScene::init()
     if (!initplayer())
     {
         spdlog::error("GameScene initplayer failed");
+        _context.getInputManager().setShouldQuit(true);
+        return;
+    }
+
+    if (!initEnemyAndItem())
+    {
+        spdlog::error("GameScene initEnemyAndItem failed");
         _context.getInputManager().setShouldQuit(true);
         return;
     }
@@ -126,4 +135,65 @@ bool game::scene::GameScene::initplayer()
     _context.getCamera().setTarget(player_transform);
 
     return true;
+}
+
+bool game::scene::GameScene::initEnemyAndItem()
+{
+    bool success = true;
+    for (auto &game_object : _game_objects)
+    {
+        if (game_object->getName() == "eagle")
+        {
+            if (auto *ac = game_object->getComponent<engine::component::AnimationComponent>(); ac)
+            {
+                ac->playAnimation("fly");
+            }
+            else
+            {
+                spdlog::error("Failed to find eagle animation component");
+                success = false;
+            }
+        }
+        if (game_object->getName() == "frog")
+        {
+            if (auto *ac = game_object->getComponent<engine::component::AnimationComponent>(); ac)
+            {
+                /* code */
+                ac->playAnimation("idle");
+            }
+            else
+            {
+                spdlog::error("Failed to find frog animation component");
+                success = false;
+            }
+        }
+        if (game_object->getName() == "opossum")
+        {
+            if (auto *ac = game_object->getComponent<engine::component::AnimationComponent>(); ac)
+            {
+                /* code */
+                ac->playAnimation("walk");
+            }
+            else
+            {
+                spdlog::error("Failed to find opossum animation component");
+                success = false;
+            }
+        }
+        if (game_object->getTarget() == "item")
+        {
+            if (auto *ac = game_object->getComponent<engine::component::AnimationComponent>(); ac)
+            {
+                /* code */
+                ac->playAnimation("idle");
+            }
+            else
+            {
+                spdlog::error("Failed to find item animation component");
+                success = false;
+            }
+        }
+    }
+
+    return success;
 }

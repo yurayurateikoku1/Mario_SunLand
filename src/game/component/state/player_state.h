@@ -29,6 +29,8 @@ namespace game::component::state
         PlayerState &operator=(const PlayerState &) = delete;
         PlayerState &operator=(PlayerState &&) = delete;
 
+        void playerAnimation(const std::string &animation_name);
+
     protected:
         virtual void enter() = 0;
         virtual void exit() = 0;

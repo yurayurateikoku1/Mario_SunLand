@@ -10,6 +10,7 @@
 #include "../../../engine/component/sprite_component.h"
 void game::component::state::IdleState::enter()
 {
+    playerAnimation("idle");
 }
 
 void game::component::state::IdleState::exit()

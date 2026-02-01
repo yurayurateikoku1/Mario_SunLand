@@ -12,6 +12,7 @@ namespace engine::component
     class TransformComponent;
     class PhysicsComponent;
     class SpriteComponent;
+    class AnimationComponent;
 }
 
 namespace game::component::state
@@ -29,6 +30,7 @@ namespace game::component
         engine::component::TransformComponent *_transform_component = nullptr;
         engine::component::PhysicsComponent *_physics_component = nullptr;
         engine::component::SpriteComponent *_sprite_component = nullptr;
+        engine::component::AnimationComponent *_animation_component = nullptr;
 
         std::unique_ptr<state::PlayerState> _current_state = nullptr;
         bool _is_dead = false;
@@ -53,6 +55,7 @@ namespace game::component
         engine::component::TransformComponent *getTrasformComponent() const { return _transform_component; }
         engine::component::PhysicsComponent *getPhysicsComponent() const { return _physics_component; }
         engine::component::SpriteComponent *getSpriteComponent() const { return _sprite_component; }
+        engine::component::AnimationComponent *getAnimationComponent() const { return _animation_component; }
 
         bool getDead() const { return _is_dead; }
         void setDead(bool is_dead) { _is_dead = is_dead; }
