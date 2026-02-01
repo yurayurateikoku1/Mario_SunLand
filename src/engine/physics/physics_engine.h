@@ -25,6 +25,8 @@ namespace engine::physics
         std::vector<engine::component::TileLayerComponent *> _collision_tile_layers;
         std::optional<engine::utils::Rect> _world_bounds;
 
+        std::vector<std::pair<engine::object::GameObject *, engine::component::TileType>> _tile_tigger_events;
+
     public:
         PhysicsEngine() = default;
 
@@ -51,12 +53,14 @@ namespace engine::physics
         const glm::vec2 &getGravity() const { return _gravity; }
         float getMaxSpeed() const { return _max_speed; }
 
+        const std::vector<std::pair<engine::object::GameObject *, engine::component::TileType>> &getTileTriggerEvents() const { return _tile_tigger_events; }
         void setWorldBounds(const engine::utils::Rect &world_bounds) { _world_bounds = world_bounds; }
         const std::optional<engine::utils::Rect> &getWorldBounds() const { return _world_bounds; }
         const std::vector<std::pair<engine::object::GameObject *, engine::object::GameObject *>> &getCollisionPairs() const { return _collision_pairs; }
         void applyWorldBounds(engine::component::PhysicsComponent *pc);
 
         float getTileHeightAtWidth(float width, engine::component::TileType tile_type, glm::vec2 tile_size);
+        void checkTileTriggers();
     };
 
 }

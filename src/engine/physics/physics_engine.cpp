@@ -1,5 +1,6 @@
 #include "physics_engine.h"
 #include "collision.h"
+#include <set>
 #include "../component/physics_component.h"
 #include "../component/transform_component.h"
 #include "../component/collider_component.h"
@@ -34,6 +35,7 @@ void engine::physics::PhysicsEngine::update(float dt)
 {
     // 清空碰撞对
     _collision_pairs.clear();
+    _tile_tigger_events.clear();
     // 更新所有物理组件
     for (auto *pc : _physics_components)
     {
@@ -60,6 +62,7 @@ void engine::physics::PhysicsEngine::update(float dt)
     }
     //  检查碰撞
     checkObjectCollision();
+    checkTileTriggers();
 }
 
 void engine::physics::PhysicsEngine::checkObjectCollision()
@@ -420,5 +423,47 @@ float engine::physics::PhysicsEngine::getTileHeightAtWidth(float width, engine::
         return (1.0f - rel_x) * tile_size.y * 0.5f + tile_size.y * 0.5f;
     default:
         return 0.0f;
+    }
+}
+
+void engine::physics::PhysicsEngine::checkTileTriggers()
+{
+    for (auto *pc : _physics_components)
+    {
+
+        auto world_aabb = pc->getOwner()->getComponent<engine::component::ColliderComponent>()->getWorldAABB();
+
+        // 使用 set 防止同一帧内因接触多个同类瓦片而重复触发
+        std::set<engine::component::TileType> triggers_set;
+
+        for (auto *layer : _collision_tile_layers)
+        {
+            if (!layer)
+            {
+                continue;
+            }
+            auto tile_size = layer->getTileSize();
+            constexpr float tolerance = 1.0f;
+            auto start_x = static_cast<int>(std::floor((world_aabb.position.x) / tile_size.x));
+            auto end_x = static_cast<int>(std::ceil((world_aabb.position.x + world_aabb.size.x - tolerance) / tile_size.x));
+            auto start_y = static_cast<int>(std::floor((world_aabb.position.y) / tile_size.y));
+            auto end_y = static_cast<int>(std::ceil((world_aabb.position.y + world_aabb.size.y - tolerance) / tile_size.y));
+            for (int x = start_x; x < end_x; ++x)
+            {
+                for (int y = start_y; y < end_y; ++y)
+                {
+                    auto tile_type = layer->getTileTypeAt({x, y});
+                    if (tile_type == engine::component::TileType::HAZARD)
+                    {
+                        triggers_set.insert(tile_type);
+                    }
+                }
+            }
+        }
+        // 将本帧触发的所有唯一类型的事件记录下来
+        for (const auto &type : triggers_set)
+        {
+            _tile_tigger_events.emplace_back(pc->getOwner(), type);
+        }
     }
 }

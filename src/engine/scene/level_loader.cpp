@@ -251,6 +251,11 @@ void engine::scene::LevelLoader::loadObjectLayer(const nlohmann::json &layer_jso
             {
                 game_object->setTarget(tag.value());
             }
+            else if (tile_info.type == engine::component::TileType::HAZARD)
+            {
+                /* code */
+                game_object->setTarget("hazard");
+            }
 
             auto gravity = getTileProperty<bool>(tile_json, "gravity");
             if (gravity)
@@ -544,6 +549,11 @@ engine::component::TileType engine::scene::LevelLoader::getTileType(const nlohma
             {
                 auto is_unisolid = property.value("value", false);
                 return is_unisolid ? engine::component::TileType::UNISOLID : engine::component::TileType::NORMAL;
+            }
+            else if (property.contains("name") && property["name"] == "hazard")
+            {
+                auto is_hazard = property.value("value", false);
+                return is_hazard ? engine::component::TileType::HAZARD : engine::component::TileType::NORMAL;
             }
         }
     }
