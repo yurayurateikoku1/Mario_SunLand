@@ -42,7 +42,7 @@ namespace game::component
         /// @brief 最大移动速度
         float _move_speed = 120.0f;
         /// @brief 跳跃力
-        float _jump_force = 350.0f;
+        float _jump_vel = 350.0f;
         /// @brief 摩擦系数
         float _friction_factor = 0.85f;
 
@@ -70,8 +70,8 @@ namespace game::component
         float getMoveForce() const { return _move_force; }
         void setMoveSpeed(float speed) { _move_speed = speed; }
         float getMoveSpeed() const { return _move_speed; }
-        void setJumpForce(float force) { _jump_force = force; }
-        float getJumpForce() const { return _jump_force; }
+        void setJumpVelocity(float force) { _jump_vel = force; }
+        float getJumpVelocity() const { return _jump_vel; }
         void setFrictionFactor(float factor) { _friction_factor = factor; }
         float getFrictionFactor() const { return _friction_factor; }
         void setStunnedDuration(float duration) { _stunned_duration = duration; }

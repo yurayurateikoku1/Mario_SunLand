@@ -13,6 +13,10 @@
 #include "../../engine/object/game_object.h"
 #include "../../engine/render/camera.h"
 #include "../../engine/render/animation.h"
+#include "../component/ai_component.h"
+#include "../component/ai/patrol_behavior.h"
+#include "../component/ai/jump_behavior.h"
+#include "../component/ai/updown_behavior.h"
 #include "../../engine/physics/physics_engine.h"
 #include "../../engine/physics/collider.h"
 #include <spdlog/spdlog.h>
@@ -147,40 +151,29 @@ bool game::scene::GameScene::initEnemyAndItem()
     {
         if (game_object->getName() == "eagle")
         {
-            if (auto *ac = game_object->getComponent<engine::component::AnimationComponent>(); ac)
+            if (auto *ai_component = game_object->addComponent<game::component::AIComponent>(); ai_component)
             {
-                ac->playAnimation("fly");
-            }
-            else
-            {
-                spdlog::error("Failed to find eagle animation component");
-                success = false;
+                auto y_max = game_object->getComponent<engine::component::TransformComponent>()->getPosition().y;
+                auto y_min = y_max - 80.0f;
+                ai_component->setBehavior(std::make_unique<game::component::ai::UpDownBehavior>(y_min, y_max));
             }
         }
         if (game_object->getName() == "frog")
         {
-            if (auto *ac = game_object->getComponent<engine::component::AnimationComponent>(); ac)
+            if (auto *ai_component = game_object->addComponent<game::component::AIComponent>(); ai_component)
             {
-                /* code */
-                ac->playAnimation("idle");
-            }
-            else
-            {
-                spdlog::error("Failed to find frog animation component");
-                success = false;
+                auto x_max = game_object->getComponent<engine::component::TransformComponent>()->getPosition().x - 10.0f;
+                auto x_min = x_max - 90.0f;
+                ai_component->setBehavior(std::make_unique<game::component::ai::JumpBehavior>(x_min, x_max));
             }
         }
         if (game_object->getName() == "opossum")
         {
-            if (auto *ac = game_object->getComponent<engine::component::AnimationComponent>(); ac)
+            if (auto *ai_component = game_object->addComponent<game::component::AIComponent>(); ai_component)
             {
-                /* code */
-                ac->playAnimation("walk");
-            }
-            else
-            {
-                spdlog::error("Failed to find opossum animation component");
-                success = false;
+                auto x_max = game_object->getComponent<engine::component::TransformComponent>()->getPosition().x;
+                auto x_min = x_max - 200.0f;
+                ai_component->setBehavior(std::make_unique<game::component::ai::PatrolBehavior>(x_min, x_max));
             }
         }
         if (game_object->getTarget() == "item")

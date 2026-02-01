@@ -11,7 +11,7 @@ void game::component::state::JumpState::enter()
 {
     playerAnimation("jump");
     auto physics_component = _player_component->getPhysicsComponent();
-    physics_component->_velocity.y = -_player_component->getJumpForce();
+    physics_component->_velocity.y = -_player_component->getJumpVelocity();
 }
 
 void game::component::state::JumpState::exit()

@@ -74,7 +74,8 @@ namespace engine::component
         void setCollidedAbove(bool collided) { _collided_above = collided; }
         void setCollidedLeft(bool collided) { _collided_left = collided; }
         void setCollidedRight(bool collided) { _collided_right = collided; }
-
+        void setVelocity(glm::vec2 velocity) { _velocity = std::move(velocity); }
+        const glm::vec2 &getVelocity() const { return _velocity; }
         bool getCollidedBelow() const { return _collided_below; }
         bool getCollidedAbove() const { return _collided_above; }
         bool getCollidedLeft() const { return _collided_left; }
