@@ -1,12 +1,15 @@
 #include "player_component.h"
 #include "state/player_state.h"
 #include "state/idle_state.h"
+#include "state/hurt_state.h"
+#include "state/dead_state.h"
 #include <spdlog/spdlog.h>
 #include "../../engine/object/game_object.h"
 #include "../../engine/component/transform_component.h"
 #include "../../engine/component/physics_component.h"
 #include "../../engine/component/sprite_component.h"
 #include "../../engine/component/animation_component.h"
+#include "../../engine/component/health_component.h"
 #include "../../engine/input/input_manager.h"
 #include <utility>
 #include <typeinfo>
@@ -25,8 +28,9 @@ void game::component::PlayerComponent::init()
     _physics_component = _owner->getComponent<engine::component::PhysicsComponent>();
     _sprite_component = _owner->getComponent<engine::component::SpriteComponent>();
     _animation_component = _owner->getComponent<engine::component::AnimationComponent>();
+    _health_component = _owner->getComponent<engine::component::HealthComponent>();
 
-    if (!_transform_component || !_physics_component || !_sprite_component || !_animation_component)
+    if (!_transform_component || !_physics_component || !_sprite_component || !_animation_component || !_health_component)
     {
         spdlog::error("PlayerComponent: component is not set.");
         return;
@@ -43,6 +47,32 @@ void game::component::PlayerComponent::init()
 }
 
 game::component::PlayerComponent::~PlayerComponent() = default;
+
+bool game::component::PlayerComponent::takeDamage(int damage_amount)
+{
+    if (_is_dead || !_health_component || damage_amount <= 0)
+    {
+        return false;
+    }
+
+    bool success = _health_component->takeDamage(damage_amount);
+    if (!success)
+        return false;
+
+    // --- 成功造成伤害了，根据是否存活决定状态切换
+    if (_health_component->isAlive())
+    {
+        // 切换到受伤状态
+        setState(std::make_unique<state::HurtState>(this));
+    }
+    else
+    {
+        _is_dead = true;
+        // 切换到死亡状态
+        setState(std::make_unique<state::DeadState>(this));
+    }
+    return true;
+}
 
 void game::component::PlayerComponent::setState(std::unique_ptr<game::component::state::PlayerState> new_state)
 {

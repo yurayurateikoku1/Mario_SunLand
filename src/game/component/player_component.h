@@ -13,6 +13,7 @@ namespace engine::component
     class PhysicsComponent;
     class SpriteComponent;
     class AnimationComponent;
+    class HealthComponent;
 }
 
 namespace game::component::state
@@ -31,6 +32,7 @@ namespace game::component
         engine::component::PhysicsComponent *_physics_component = nullptr;
         engine::component::SpriteComponent *_sprite_component = nullptr;
         engine::component::AnimationComponent *_animation_component = nullptr;
+        engine::component::HealthComponent *_health_component = nullptr;
 
         std::unique_ptr<state::PlayerState> _current_state = nullptr;
         bool _is_dead = false;
@@ -44,6 +46,8 @@ namespace game::component
         /// @brief 摩擦系数
         float _friction_factor = 0.85f;
 
+        float _stunned_duration = 0.4f;
+
     public:
         PlayerComponent();
         ~PlayerComponent() override;
@@ -52,10 +56,13 @@ namespace game::component
         PlayerComponent &operator=(const PlayerComponent &) = delete;
         PlayerComponent &operator=(PlayerComponent &&) = delete;
 
+        bool takeDamage(int damage_amount);
+
         engine::component::TransformComponent *getTrasformComponent() const { return _transform_component; }
         engine::component::PhysicsComponent *getPhysicsComponent() const { return _physics_component; }
         engine::component::SpriteComponent *getSpriteComponent() const { return _sprite_component; }
         engine::component::AnimationComponent *getAnimationComponent() const { return _animation_component; }
+        engine::component::HealthComponent *getHealthComponent() const { return _health_component; }
 
         bool getDead() const { return _is_dead; }
         void setDead(bool is_dead) { _is_dead = is_dead; }
@@ -67,6 +74,8 @@ namespace game::component
         float getJumpForce() const { return _jump_force; }
         void setFrictionFactor(float factor) { _friction_factor = factor; }
         float getFrictionFactor() const { return _friction_factor; }
+        void setStunnedDuration(float duration) { _stunned_duration = duration; }
+        float getStunnedDuration() const { return _stunned_duration; }
 
         void setState(std::unique_ptr<state::PlayerState> new_state);
 

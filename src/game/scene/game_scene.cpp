@@ -8,6 +8,7 @@
 #include "../../engine/component/collider_component.h"
 #include "../../engine/component/tilelayer_component.h"
 #include "../../engine/component/animation_component.h"
+#include "../../engine/component/health_component.h"
 #include "../component/player_component.h"
 #include "../../engine/object/game_object.h"
 #include "../../engine/render/camera.h"
@@ -70,6 +71,7 @@ void game::scene::GameScene::render()
 void game::scene::GameScene::handleInput()
 {
     Scene::handleInput();
+    testHealth();
 }
 
 void game::scene::GameScene::clean()
@@ -196,4 +198,13 @@ bool game::scene::GameScene::initEnemyAndItem()
     }
 
     return success;
+}
+
+void game::scene::GameScene::testHealth()
+{
+    auto input_manager = _context.getInputManager();
+    if (input_manager.isActionPressed("attack"))
+    {
+        _player->getComponent<game::component::PlayerComponent>()->takeDamage(1);
+    }
 }

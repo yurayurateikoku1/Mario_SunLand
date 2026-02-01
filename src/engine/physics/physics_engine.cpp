@@ -139,7 +139,7 @@ void engine::physics::PhysicsEngine::resolveTileCollision(engine::component::Phy
     }
     auto *tc = obj->getComponent<engine::component::TransformComponent>();
     auto *cc = obj->getComponent<engine::component::ColliderComponent>();
-    if (!tc || !cc || !cc->isActive() || cc->isTrigger())
+    if (!tc || !cc || cc->isTrigger())
     {
         return;
     }
@@ -154,6 +154,13 @@ void engine::physics::PhysicsEngine::resolveTileCollision(engine::component::Phy
     auto tolerance = 1.0f;           // 检查右边缘和下边缘要减1像素
     auto ds = pc->_velocity * dt;    // 计算物体在dt内的位移
     auto new_obj_pos = obj_pos + ds; // 计算新的位置
+
+    if (!cc->isActive())
+    {
+        tc->translate(ds);
+        pc->_velocity = glm::clamp(pc->_velocity, -_max_speed, _max_speed);
+        return;
+    }
 
     // 调试日志
     static int frame_counter = 0;

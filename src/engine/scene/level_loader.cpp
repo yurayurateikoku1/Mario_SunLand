@@ -6,6 +6,7 @@
 #include "../component/collider_component.h"
 #include "../component/physics_component.h"
 #include "../component/animation_component.h"
+#include "../component/health_component.h"
 #include "../../engine/render/animation.h"
 #include "../scene/scene.h"
 #include "../core/context.h"
@@ -282,6 +283,13 @@ void engine::scene::LevelLoader::loadObjectLayer(const nlohmann::json &layer_jso
                 }
                 auto *ac = game_object->addComponent<engine::component::AnimationComponent>();
                 addAnimation(anim_json, ac, src_size);
+            }
+
+            // 获取生命信息并设置
+            auto health = getTileProperty<int>(tile_json, "health");
+            if (health)
+            {
+                game_object->addComponent<engine::component::HealthComponent>(health.value());
             }
 
             scene.addGameObject(std::move(game_object));

@@ -24,5 +24,7 @@ namespace game::scene
         [[nodiscard]] bool initlevel();
         [[nodiscard]] bool initplayer();
         [[nodiscard]] bool initEnemyAndItem();
+
+        void testHealth();
     };
 }
