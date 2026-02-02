@@ -555,6 +555,11 @@ engine::component::TileType engine::scene::LevelLoader::getTileType(const nlohma
                 auto is_hazard = property.value("value", false);
                 return is_hazard ? engine::component::TileType::HAZARD : engine::component::TileType::NORMAL;
             }
+            else if (property.contains("name") && property["name"] == "ladder")
+            {
+                auto is_ladder = property.value("value", false);
+                return is_ladder ? engine::component::TileType::LADDER : engine::component::TileType::NORMAL;
+            }
         }
     }
     return engine::component::TileType::NORMAL;

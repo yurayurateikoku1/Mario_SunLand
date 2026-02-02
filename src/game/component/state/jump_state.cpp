@@ -1,5 +1,6 @@
 #include "jump_state.h"
 #include "fall_state.h"
+#include "climb_state.h"
 #include "../player_component.h"
 #include "../../../engine/physics/physics_engine.h"
 #include "../../../engine/core/context.h"
@@ -23,6 +24,11 @@ std::unique_ptr<game::component::state::PlayerState> game::component::state::Jum
     auto input_manager = context.getInputManager();
     auto physics_component = _player_component->getPhysicsComponent();
     auto sprite_component = _player_component->getSpriteComponent();
+
+    if (physics_component->getCollidedLoadder() && (input_manager.isActionDown("move_up") || input_manager.isActionDown("move_down")))
+    {
+        return std::make_unique<ClimbState>(_player_component);
+    }
 
     if (input_manager.isActionDown("move_left"))
     {
@@ -52,7 +58,7 @@ std::unique_ptr<game::component::state::PlayerState> game::component::state::Jum
     auto physics_component = _player_component->getPhysicsComponent();
     auto max_speed = _player_component->getMoveSpeed();
     physics_component->_velocity.x = glm::clamp(physics_component->_velocity.x, -max_speed, max_speed);
-    if (physics_component->_velocity.y > 0.0f)
+    if (physics_component->_velocity.y >= 0.0f)
     {
         return std::make_unique<FallState>(_player_component);
     }

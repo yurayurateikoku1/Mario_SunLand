@@ -2,6 +2,7 @@
 #include "jump_state.h"
 #include "fall_state.h"
 #include "idle_state.h"
+#include "climb_state.h"
 #include "../player_component.h"
 #include "../../../engine/core/context.h"
 #include "../../../engine/input/input_manager.h"
@@ -23,6 +24,11 @@ std::unique_ptr<game::component::state::PlayerState> game::component::state::Wal
     auto input_manager = context.getInputManager();
     auto physics_component = _player_component->getPhysicsComponent();
     auto sprite_component = _player_component->getSpriteComponent();
+
+    if (physics_component->getCollidedLoadder() && input_manager.isActionDown("move_up"))
+    {
+        return std::make_unique<ClimbState>(_player_component);
+    }
 
     // 如果按下“jump”键,切换到跳跃状态
     if (input_manager.isActionPressed("jump"))

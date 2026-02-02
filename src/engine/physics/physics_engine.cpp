@@ -280,6 +280,25 @@ void engine::physics::PhysicsEngine::resolveTileCollision(engine::component::Phy
                         pc->_velocity.y = 0.0f;
                         pc->setCollidedBelow(true);
                     }
+                    else if (tile_type_left == engine::component::TileType::LADDER && tile_type_right == engine::component::TileType::LADDER)
+                    {
+                        auto tile_type_up_l = layer->getTileTypeAt({tile_x_left, tile_y - 1});
+                        auto tile_type_up_r = layer->getTileTypeAt({tile_x_right, tile_y - 1});
+                        if (tile_type_up_r != engine::component::TileType::LADDER && tile_type_up_l != engine::component::TileType::LADDER)
+                        {
+                            if (pc->getUseGravity())
+                            {
+                                pc->setOnTopLadder(true);
+                                pc->setCollidedBelow(true);
+
+                                new_obj_pos.y = tile_y * layer->getTileSize().y - obj_size.y;
+                                pc->_velocity.y = 0.0f;
+                            }
+                            else
+                            {
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -456,6 +475,10 @@ void engine::physics::PhysicsEngine::checkTileTriggers()
                     if (tile_type == engine::component::TileType::HAZARD)
                     {
                         triggers_set.insert(tile_type);
+                    }
+                    else if (tile_type == engine::component::TileType::LADDER)
+                    {
+                        pc->setCollidedLoadder(true);
                     }
                 }
             }

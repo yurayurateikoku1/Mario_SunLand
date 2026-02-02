@@ -2,6 +2,7 @@
 #include "jump_state.h"
 #include "idle_state.h"
 #include "walk_state.h"
+#include "climb_state.h"
 #include "../player_component.h"
 #include "../../../engine/physics/physics_engine.h"
 #include "../../../engine/core/context.h"
@@ -25,6 +26,11 @@ std::unique_ptr<game::component::state::PlayerState> game::component::state::Fal
     auto input_manager = context.getInputManager();
     auto physics_component = _player_component->getPhysicsComponent();
     auto sprite_component = _player_component->getSpriteComponent();
+
+    if (physics_component->getCollidedLoadder() && (input_manager.isActionDown("move_up") || input_manager.isActionDown("move_down")))
+    {
+        return std::make_unique<ClimbState>(_player_component);
+    }
 
     if (input_manager.isActionDown("move_left"))
     {

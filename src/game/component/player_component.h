@@ -48,6 +48,8 @@ namespace game::component
 
         float _stunned_duration = 0.4f;
 
+        float _climb_speed = 100.0f;
+
     public:
         PlayerComponent();
         ~PlayerComponent() override;
@@ -76,6 +78,8 @@ namespace game::component
         float getFrictionFactor() const { return _friction_factor; }
         void setStunnedDuration(float duration) { _stunned_duration = duration; }
         float getStunnedDuration() const { return _stunned_duration; }
+        void setClimbSpeed(float speed) { _climb_speed = speed; }
+        float getClimbSpeed() const { return _climb_speed; }
 
         void setState(std::unique_ptr<state::PlayerState> new_state);
 

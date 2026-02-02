@@ -36,6 +36,8 @@ namespace engine::component
         bool _collided_above = false;
         bool _collided_left = false;
         bool _collided_right = false;
+        bool _collided_loadder = false;
+        bool _is_on_top_ladder = false;
 
     public:
         PhysicsComponent(engine::physics::PhysicsEngine *physics_engine, bool use_gravity = true, float mass = 1.0f);
@@ -68,6 +70,8 @@ namespace engine::component
             _collided_above = false;
             _collided_left = false;
             _collided_right = false;
+            _collided_loadder = false;
+            _is_on_top_ladder = false;
         }
 
         void setCollidedBelow(bool collided) { _collided_below = collided; }
@@ -75,11 +79,15 @@ namespace engine::component
         void setCollidedLeft(bool collided) { _collided_left = collided; }
         void setCollidedRight(bool collided) { _collided_right = collided; }
         void setVelocity(glm::vec2 velocity) { _velocity = std::move(velocity); }
+        void setCollidedLoadder(bool collided) { _collided_loadder = collided; }
         const glm::vec2 &getVelocity() const { return _velocity; }
         bool getCollidedBelow() const { return _collided_below; }
         bool getCollidedAbove() const { return _collided_above; }
         bool getCollidedLeft() const { return _collided_left; }
         bool getCollidedRight() const { return _collided_right; }
+        bool getCollidedLoadder() const { return _collided_loadder; }
+        bool isOnTopLadder() const { return _is_on_top_ladder; }
+        void setOnTopLadder(bool on_top) { _is_on_top_ladder = on_top; }
 
     private:
         void init() override;

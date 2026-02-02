@@ -39,7 +39,9 @@ namespace engine::component
 
         void addAnimation(std::unique_ptr<engine::render::Animation> &&animation);
         void playAnimation(const std::string &name);
+
         void stopAnimation() { _is_playing = false; }
+        void resumeAnimation() { _is_playing = true; }
 
         std::string getCurrentAnimationName() const;
         bool isPlaying() const { return _is_playing; }
