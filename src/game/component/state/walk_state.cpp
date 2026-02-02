@@ -72,7 +72,7 @@ std::unique_ptr<game::component::state::PlayerState> game::component::state::Wal
     physics_compont->_velocity.x = glm::clamp(physics_compont->_velocity.x, -max_speed, max_speed);
 
     // 如果下方没有碰撞 切换到下落状态
-    if (!physics_compont->getCollidedBelow())
+    if (!_player_component->isOnGround())
     {
         return std::make_unique<FallState>(_player_component);
     }

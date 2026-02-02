@@ -50,6 +50,12 @@ namespace game::component
 
         float _climb_speed = 100.0f;
 
+        // 土狼时间
+        static constexpr float _coyote_time = 0.2f;
+        float _coyote_timer = 0.0f;
+        static constexpr float _flash_interval = 0.1f;
+        float _flash_timer = 0.0f;
+
     public:
         PlayerComponent();
         ~PlayerComponent() override;
@@ -82,6 +88,7 @@ namespace game::component
         float getClimbSpeed() const { return _climb_speed; }
 
         void setState(std::unique_ptr<state::PlayerState> new_state);
+        bool isOnGround() const;
 
     private:
         void init() override;

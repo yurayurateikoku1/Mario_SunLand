@@ -89,6 +89,11 @@ void game::component::PlayerComponent::setState(std::unique_ptr<game::component:
     _current_state->enter();
 }
 
+bool game::component::PlayerComponent::isOnGround() const
+{
+    return _coyote_timer <= _coyote_time || _physics_component->getCollidedBelow();
+}
+
 void game::component::PlayerComponent::handleInput(engine::core::Context &context)
 {
     if (!_current_state)
@@ -108,6 +113,36 @@ void game::component::PlayerComponent::update(float dt, engine::core::Context &c
     {
         return;
     }
+    if (!_physics_component->getCollidedBelow())
+    {
+        _coyote_timer += dt;
+    }
+    else
+    {
+        _coyote_timer = 0.0f;
+    }
+
+    if (_health_component->isInvincible())
+    {
+        _flash_timer += dt;
+        if (_flash_timer >= 2 * _flash_interval)
+        {
+            _flash_timer -= 2 * _flash_interval;
+        }
+        if (_flash_timer < _flash_interval)
+        {
+            _sprite_component->setHidden(true);
+        }
+        else
+        {
+            _sprite_component->setHidden(false);
+        }
+    }
+    else if (_sprite_component->isHidden())
+    {
+        _sprite_component->setHidden(false);
+    }
+
     auto next_state = _current_state->update(dt, context);
     if (next_state)
     {

@@ -55,10 +55,9 @@ std::unique_ptr<game::component::state::PlayerState> game::component::state::Idl
     auto friction_factor = _player_component->getFrictionFactor();
 
     physics_component->_velocity.x *= friction_factor;
-    if (!physics_component->getCollidedBelow())
+    if (!_player_component->isOnGround())
     {
         return std::make_unique<FallState>(_player_component);
     }
-
     return nullptr;
 }
