@@ -11,8 +11,10 @@
 #include "../../engine/component/animation_component.h"
 #include "../../engine/component/health_component.h"
 #include "../../engine/input/input_manager.h"
+#include "../../engine/component/audio_component.h"
 #include <utility>
 #include <typeinfo>
+#include <glm/glm.hpp>
 
 game::component::PlayerComponent::PlayerComponent() = default;
 
@@ -29,8 +31,9 @@ void game::component::PlayerComponent::init()
     _sprite_component = _owner->getComponent<engine::component::SpriteComponent>();
     _animation_component = _owner->getComponent<engine::component::AnimationComponent>();
     _health_component = _owner->getComponent<engine::component::HealthComponent>();
+    _audio_component = _owner->getComponent<engine::component::AudioComponent>();
 
-    if (!_transform_component || !_physics_component || !_sprite_component || !_animation_component || !_health_component)
+    if (!_transform_component || !_physics_component || !_sprite_component || !_animation_component || !_health_component || !_audio_component)
     {
         spdlog::error("PlayerComponent: component is not set.");
         return;

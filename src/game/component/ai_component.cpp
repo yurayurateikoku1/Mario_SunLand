@@ -5,6 +5,7 @@
 #include "../../engine/component/sprite_component.h"
 #include "../../engine/component/health_component.h"
 #include "../../engine/component/animation_component.h"
+#include "../../engine/component/audio_component.h"
 void game::component::AIComponent::setBehavior(std::unique_ptr<ai::AIBehavior> behavior)
 {
     _current_behavior = std::move(behavior);
@@ -41,6 +42,7 @@ void game::component::AIComponent::init()
     _physics_component = getOwner()->getComponent<engine::component::PhysicsComponent>();
     _sprite_component = getOwner()->getComponent<engine::component::SpriteComponent>();
     _animation_component = getOwner()->getComponent<engine::component::AnimationComponent>();
+    _audio_component = getOwner()->getComponent<engine::component::AudioComponent>();
 }
 
 void game::component::AIComponent::update(float delta_time, engine::core::Context &)

@@ -9,7 +9,7 @@
 #include "../../../engine/object/game_object.h"
 #include "../../../engine/component/physics_component.h"
 #include "../../../engine/component/sprite_component.h"
-
+#include "../../../engine/component/audio_component.h"
 void game::component::state::HurtState::enter()
 {
     playerAnimation("hurt");
@@ -23,6 +23,10 @@ void game::component::state::HurtState::enter()
         knockback_velocity.x = -knockback_velocity.x;
     }
     physics_component->_velocity = knockback_velocity;
+    if (auto *audio_component = _player_component->getAudioComponent(); audio_component)
+    {
+        audio_component->playerSound("hurt");
+    }
 }
 
 void game::component::state::HurtState::exit()

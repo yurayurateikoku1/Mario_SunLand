@@ -6,7 +6,7 @@
 #include "../../../engine/object/game_object.h"
 #include "../../../engine/component/physics_component.h"
 #include "../../../engine/component/collider_component.h"
-
+#include "../../../engine/component/audio_component.h"
 void game::component::state::DeadState::enter()
 {
     playerAnimation("hurt");
@@ -18,6 +18,10 @@ void game::component::state::DeadState::enter()
     if (collider_component)
     {
         collider_component->setActive(false);
+    }
+    if (auto *audio_component = _player_component->getAudioComponent(); audio_component)
+    {
+        audio_component->playerSound("dead");
     }
 }
 

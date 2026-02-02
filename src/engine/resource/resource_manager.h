@@ -6,6 +6,7 @@
 struct SDL_Renderer;
 struct SDL_Texture;
 struct MIX_Audio;
+struct MIX_Mixer;
 struct TTF_Font;
 
 namespace engine::resource
@@ -33,6 +34,8 @@ namespace engine::resource
 
         void clear();
 
+        MIX_Mixer *getMixer() const;
+
         //=====Texture=====
         SDL_Texture *loadTexture(const std::string &file_path);
         SDL_Texture *getTexture(const std::string &file_path);
@@ -51,18 +54,6 @@ namespace engine::resource
         MIX_Audio *getMusic(const std::string &file_path);
         void unloadMusic(const std::string &file_path);
         void clearMusics();
-
-        //=====Audio Playback=====
-        void playSound(const std::string &file_path, int loops = 0);
-        void playMusic(const std::string &file_path, int loops = -1);
-        void stopMusic();
-        void stopSound();
-        void pauseMusic();
-        void pauseSound();
-        void resumeMusic();
-        void resumeSound();
-        void setMusicGain(float gain);
-        void setSoundGain(float gain);
 
         //=====Font=====
         TTF_Font *loadFont(const std::string &file_path, int font_size);

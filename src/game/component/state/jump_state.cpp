@@ -8,11 +8,16 @@
 #include "../../../engine/object/game_object.h"
 #include "../../../engine/component/physics_component.h"
 #include "../../../engine/component/sprite_component.h"
+#include "../../../engine/component/audio_component.h"
 void game::component::state::JumpState::enter()
 {
     playerAnimation("jump");
     auto physics_component = _player_component->getPhysicsComponent();
     physics_component->_velocity.y = -_player_component->getJumpVelocity();
+    if (auto *audio_component = _player_component->getAudioComponent(); audio_component)
+    {
+        audio_component->playerSound("jump");
+    }
 }
 
 void game::component::state::JumpState::exit()

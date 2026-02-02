@@ -12,6 +12,7 @@ namespace engine::component
     class PhysicsComponent;
     class SpriteComponent;
     class AnimationComponent;
+    class AudioComponent;
 }
 
 namespace game::component
@@ -32,6 +33,7 @@ namespace game::component
         engine::component::PhysicsComponent *_physics_component = nullptr;
         engine::component::SpriteComponent *_sprite_component = nullptr;
         engine::component::AnimationComponent *_animation_component = nullptr;
+        engine::component::AudioComponent *_audio_component = nullptr;
 
     public:
         void setBehavior(std::unique_ptr<ai::AIBehavior> behavior);
@@ -42,6 +44,7 @@ namespace game::component
         engine::component::TransformComponent *getTransformComponent() const { return _transform_component; }
         engine::component::SpriteComponent *getSpriteComponent() const { return _sprite_component; }
         engine::component::AnimationComponent *getAnimationComponent() const { return _animation_component; }
+        engine::component::AudioComponent *getAudioComponent() const { return _audio_component; }
 
     private:
         void init() override;

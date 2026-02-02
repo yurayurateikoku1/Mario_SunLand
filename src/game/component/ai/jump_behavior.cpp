@@ -4,6 +4,7 @@
 #include "../../../engine/component/physics_component.h"
 #include "../../../engine/component/transform_component.h"
 #include "../../../engine/component/sprite_component.h"
+#include "../../../engine/component/audio_component.h"
 game::component::ai::JumpBehavior::JumpBehavior(float min_x, float max_x, glm::vec2 jump_vel, float interval)
     : _patrol_min_x(min_x), _patrol_max_x(max_x), _jump_vel(jump_vel), _jump_interval(interval)
 {
@@ -18,6 +19,7 @@ void game::component::ai::JumpBehavior::update(float delta_time, AIComponent &ai
     auto *pc = ai_component.getPhysicsComponent();
     auto *tc = ai_component.getTransformComponent();
     auto *sc = ai_component.getSpriteComponent();
+    auto *ac = ai_component.getAudioComponent();
     if (!pc || !tc || !sc)
     {
         return;
@@ -25,7 +27,12 @@ void game::component::ai::JumpBehavior::update(float delta_time, AIComponent &ai
 
     auto is_on_ground = pc->getCollidedBelow();
     if (is_on_ground)
-    {                              // 如果在地面上
+    {
+        if (ac && _jump_timer < 0.001f)
+        {
+            ac->playerSound("cry", -1, true);
+        }
+        // 如果在地面上
         _jump_timer += delta_time; // 累加等待计时器
         pc->_velocity.x = 0.0f;    // 停止水平滑动
 

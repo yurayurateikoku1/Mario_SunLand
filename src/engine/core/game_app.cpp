@@ -5,6 +5,7 @@
 #include "time.h"
 #include "context.h"
 #include "../resource/resource_manager.h"
+#include "../audio/audio_player.h"
 #include "../render/camera.h"
 #include "../render/render.h"
 #include "../input/input_manager.h"
@@ -120,6 +121,21 @@ namespace engine::core
         return true;
     }
 
+    bool GameApp::initAudioPlayer()
+    {
+        try
+        {
+            _audio_player = std::make_unique<engine::audio::AudioPlayer>(_resource_manager.get());
+        }
+        catch (const std::exception &e)
+        {
+            spdlog::error("AudioPlayer init failed: {},{},{}", e.what(), __FILE__, __LINE__);
+            return false;
+        }
+
+        return true;
+    }
+
     bool GameApp::initRenderer()
     {
         try
@@ -182,7 +198,7 @@ namespace engine::core
     {
         try
         {
-            _context = std::make_unique<engine::core::Context>(*_input_manager, *_renderer, *_resource_manager, *_camera, *_physics_engine);
+            _context = std::make_unique<engine::core::Context>(*_input_manager, *_renderer, *_resource_manager, *_camera, *_physics_engine, *_audio_player);
         }
         catch (const std::exception &e)
         {
@@ -222,6 +238,10 @@ namespace engine::core
             return false;
         }
         if (!initResourceManager())
+        {
+            return false;
+        }
+        if (!initAudioPlayer())
         {
             return false;
         }

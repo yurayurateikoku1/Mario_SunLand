@@ -19,6 +19,7 @@
 #include "../component/ai/updown_behavior.h"
 #include "../../engine/physics/physics_engine.h"
 #include "../../engine/physics/collider.h"
+#include "../../engine/audio/audio_player.h"
 #include <spdlog/spdlog.h>
 #include <SDL3/SDL_rect.h>
 #include <iostream>
@@ -57,7 +58,9 @@ void game::scene::GameScene::init()
         _context.getInputManager().setShouldQuit(true);
         return;
     }
-
+    _context.getAudioPlayer().setMusicVolume(0.2f);
+    _context.getAudioPlayer().setSoundVolume(0.3f);
+    _context.getAudioPlayer().playMusic("assets/audio/hurry_up_and_run.ogg", true, 1000);
     Scene::init();
     spdlog::info("GameScene initialized");
 }
@@ -241,7 +244,7 @@ void game::scene::GameScene::playerVsEnemyCollision(engine::object::GameObject *
     // 踩踏判断成功，敌人受伤
     if (overlap.x > overlap.y && player_center.y < enemy_center.y)
     {
-        spdlog::info("玩家 {} 踩踏了敌人 {}", player->getName(), enemy->getName());
+        spdlog::info("player {} attack {}", player->getName(), enemy->getName());
         auto enemy_health = enemy->getComponent<engine::component::HealthComponent>();
         if (!enemy_health)
         { /* ... */
@@ -256,6 +259,7 @@ void game::scene::GameScene::playerVsEnemyCollision(engine::object::GameObject *
         }
         // 玩家跳起效果
         player->getComponent<engine::component::PhysicsComponent>()->_velocity.y = -300.0f;
+        _context.getAudioPlayer().playSound("assets/audio/punch2a.mp3");
     }
     // 踩踏判断失败，玩家受伤
     else
@@ -277,6 +281,7 @@ void game::scene::GameScene::playerVsItemCollision(engine::object::GameObject *p
     item->setNeedRemove(true); // 标记道具为待删除状态
     auto item_aabb = item->getComponent<engine::component::ColliderComponent>()->getWorldAABB();
     createEffect(item_aabb.position + item_aabb.size / 2.0f, item->getTarget()); // 创建特效
+    _context.getAudioPlayer().playSound("assets/audio/poka01.mp3");
 }
 
 void game::scene::GameScene::handleTileTriggers()

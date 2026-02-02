@@ -7,6 +7,7 @@
 #include "../component/physics_component.h"
 #include "../component/animation_component.h"
 #include "../component/health_component.h"
+#include "../component/audio_component.h"
 #include "../../engine/render/animation.h"
 #include "../scene/scene.h"
 #include "../core/context.h"
@@ -290,6 +291,25 @@ void engine::scene::LevelLoader::loadObjectLayer(const nlohmann::json &layer_jso
                 addAnimation(anim_json, ac, src_size);
             }
 
+            // 获取音效信息并设置
+            auto sound_string = getTileProperty<std::string>(tile_json, "sound");
+            if (sound_string)
+            {
+                nlohmann::json sound_json;
+                try
+                {
+                    sound_json = nlohmann::json::parse(sound_string.value());
+                }
+                catch (const nlohmann::json::exception &e)
+                {
+                    spdlog::error("Failed to parse sound json: {},{},{},{}", sound_string.value(), e.what(), __FILE__, __LINE__);
+                    continue;
+                }
+                auto *ac = game_object->addComponent<engine::component::AudioComponent>(&scene.getContext().getAudioPlayer(),
+                                                                                        &scene.getContext().getCamera());
+                addSound(sound_json, ac);
+            }
+
             // 获取生命信息并设置
             auto health = getTileProperty<int>(tile_json, "health");
             if (health)
@@ -347,6 +367,25 @@ void engine::scene::LevelLoader::addAnimation(const nlohmann::json &anim_json, e
         }
 
         ac->addAnimation(std::move(animation));
+    }
+}
+
+void engine::scene::LevelLoader::addSound(const nlohmann::json &sound_json, engine::component::AudioComponent *ac)
+{
+    if (!sound_json.is_object() || !ac)
+    {
+        spdlog::error("Invalid sound json or sound component");
+        return;
+    }
+    for (const auto &sound : sound_json.items())
+    {
+        const std::string &sound_id = sound.key();
+        const std::string &sound_path = sound.value();
+        if (sound_id.empty() || sound_path.empty())
+        {
+            continue;
+        }
+        ac->addSound(sound_id, sound_path);
     }
 }
 

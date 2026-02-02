@@ -18,6 +18,11 @@ engine::resource::ResourceManager::ResourceManager(SDL_Renderer *renderer)
 
 engine::resource::ResourceManager::~ResourceManager() = default;
 
+MIX_Mixer *engine::resource::ResourceManager::getMixer() const
+{
+    return _audio_manager->getMixer();
+}
+
 void engine::resource::ResourceManager::clear()
 {
     _texture_manager->clearTextures();
@@ -108,54 +113,4 @@ void engine::resource::ResourceManager::unloadFont(const std::string &file_path,
 void engine::resource::ResourceManager::clearFonts()
 {
     _font_manager->clearFonts();
-}
-
-void engine::resource::ResourceManager::playSound(const std::string &file_path, int loops)
-{
-    _audio_manager->playSound(file_path, loops);
-}
-
-void engine::resource::ResourceManager::playMusic(const std::string &file_path, int loops)
-{
-    _audio_manager->playMusic(file_path, loops);
-}
-
-void engine::resource::ResourceManager::stopMusic()
-{
-    _audio_manager->stopMusic();
-}
-
-void engine::resource::ResourceManager::stopSound()
-{
-    _audio_manager->stopSound();
-}
-
-void engine::resource::ResourceManager::pauseMusic()
-{
-    _audio_manager->pauseMusic();
-}
-
-void engine::resource::ResourceManager::pauseSound()
-{
-    _audio_manager->pauseSound();
-}
-
-void engine::resource::ResourceManager::resumeMusic()
-{
-    _audio_manager->resumeMusic();
-}
-
-void engine::resource::ResourceManager::resumeSound()
-{
-    _audio_manager->resumeSound();
-}
-
-void engine::resource::ResourceManager::setMusicGain(float gain)
-{
-    _audio_manager->setMusicGain(gain);
-}
-
-void engine::resource::ResourceManager::setSoundGain(float gain)
-{
-    _audio_manager->setSoundGain(gain);
 }
