@@ -2,7 +2,7 @@
 #include "sprite.h"
 #include <optional>
 #include <glm/glm.hpp>
-
+#include "../utils/math.h"
 struct SDL_Renderer;
 struct SDL_FRect;
 
@@ -55,6 +55,7 @@ namespace engine::render
         /// @param size
         void drawUISprite(const engine::render::Sprite &sprite, const glm::vec2 &position, const std::optional<glm::vec2> &size = std::nullopt);
 
+        void drawUIFillRect(const engine::utils::Rect &rect, const engine::utils::FColor &color);
         /// @brief 更新屏幕
         void present();
         /// @brief 清空屏幕

@@ -13,6 +13,9 @@
 #include "../../engine/object/game_object.h"
 #include "../../engine/render/camera.h"
 #include "../../engine/render/animation.h"
+#include "../../engine/ui/ui_manager.h"
+#include "../../engine/ui/ui_panel.h"
+#include "../../engine/ui/ui_element.h"
 #include "../../engine/render/text_renderer.h"
 #include "../component/ai_component.h"
 #include "../component/ai/patrol_behavior.h"
@@ -63,6 +66,13 @@ void game::scene::GameScene::init()
     if (!initEnemyAndItem())
     {
         spdlog::error("GameScene initEnemyAndItem failed");
+        _context.getInputManager().setShouldQuit(true);
+        return;
+    }
+
+    if (!initUI())
+    {
+        spdlog::error("GameScene initUI failed");
         _context.getInputManager().setShouldQuit(true);
         return;
     }
@@ -216,6 +226,16 @@ bool game::scene::GameScene::initEnemyAndItem()
     }
 
     return success;
+}
+
+bool game::scene::GameScene::initUI()
+{
+    if (!_ui_manager->init(glm::vec2(640.0f, 360.0f)))
+    {
+        return false;
+    }
+    _ui_manager->addElement(std::make_unique<engine::ui::UIPanel>(glm::vec2(100.0f, 100.0f), glm::vec2(200.0f, 200.0f), engine::utils::FColor{0.5f, 0.0f, 0.0f, 0.3f}));
+    return true;
 }
 
 void game::scene::GameScene::handleObjectCollisions()

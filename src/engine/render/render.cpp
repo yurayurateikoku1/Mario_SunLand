@@ -136,6 +136,17 @@ void engine::render::Renderer::drawUISprite(const engine::render::Sprite &sprite
     }
 }
 
+void engine::render::Renderer::drawUIFillRect(const engine::utils::Rect &rect, const engine::utils::FColor &color)
+{
+    setDrawColorFloat(color.r, color.g, color.b, color.a);
+    SDL_FRect sdl_rect = {rect.position.x, rect.position.y, rect.size.x, rect.size.y};
+    if (!SDL_RenderFillRect(_renderer, &sdl_rect))
+    {
+        spdlog::error("Render fill rect failed:{}", SDL_GetError());
+    }
+    setDrawColorFloat(0.0f, 0.0f, 0.0f, 1.0f);
+}
+
 void engine::render::Renderer::present()
 {
     SDL_RenderPresent(_renderer);
@@ -180,7 +191,7 @@ std::optional<SDL_FRect> engine::render::Renderer::getSpriteSrcRect(const Sprite
         if (rect.w <= 0 || rect.h <= 0)
         {
             spdlog::error("Invalid source rectangle: texture={}, rect=({},{},{},{})",
-                         sprite.getTextureId(), rect.x, rect.y, rect.w, rect.h);
+                          sprite.getTextureId(), rect.x, rect.y, rect.w, rect.h);
             return std::nullopt;
         }
         // 将 SDL_Rect (int) 转换为 SDL_FRect (float)

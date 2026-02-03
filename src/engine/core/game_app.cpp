@@ -87,6 +87,8 @@ namespace engine::core
             return false;
         }
 
+        SDL_SetRenderDrawBlendMode(_sdl_renderer, SDL_BLENDMODE_BLEND);
+
         int vsync_code = _config->_vsync_enabled ? SDL_RENDERER_VSYNC_ADAPTIVE : SDL_RENDERER_VSYNC_DISABLED;
         SDL_SetRenderVSync(_sdl_renderer, vsync_code);
 

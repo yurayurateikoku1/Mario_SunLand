@@ -30,6 +30,7 @@ namespace game::scene
         [[nodiscard]] bool initlevel();
         [[nodiscard]] bool initplayer();
         [[nodiscard]] bool initEnemyAndItem();
+        [[nodiscard]] bool initUI();
 
         void handleObjectCollisions();
         void playerVsEnemyCollision(engine::object::GameObject *player, engine::object::GameObject *enemy);

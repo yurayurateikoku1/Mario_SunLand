@@ -13,6 +13,10 @@ namespace engine::render
     class Renderer;
 }
 
+namespace engine::ui
+{
+    class UIManager;
+}
 namespace engine::input
 {
     class InputManager;
@@ -33,6 +37,7 @@ namespace engine::scene
         std::string _scene_name;
         engine::core::Context &_context;
         engine::scene::SceneManager &_scene_manager;
+        std::unique_ptr<engine::ui::UIManager> _ui_manager;
         bool _is_initialized{false};
         /// @brief 场景中的游戏对象
         std::vector<std::unique_ptr<engine::object::GameObject>> _game_objects;

@@ -9,4 +9,8 @@ namespace engine::utils
         glm::vec2 size;
     };
 
+    struct FColor
+    {
+        float r, g, b, a;
+    };
 }

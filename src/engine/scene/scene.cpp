@@ -4,10 +4,11 @@
 #include "../object/game_object.h"
 #include "../render/camera.h"
 #include "../core/context.h"
+#include "../ui/ui_manager.h"
 #include "../physics/physics_engine.h"
 #include <algorithm>
 engine::scene::Scene::Scene(const std::string &scene_name, engine::core::Context &context, engine::scene::SceneManager &scene_manager)
-    : _scene_name(scene_name), _context(context), _scene_manager(scene_manager), _is_initialized(false)
+    : _scene_name(scene_name), _context(context), _scene_manager(scene_manager), _is_initialized(false), _ui_manager(std::make_unique<engine::ui::UIManager>())
 {
     spdlog::info("Scene {} created", _scene_name);
 }
@@ -29,6 +30,7 @@ void engine::scene::Scene::update(float dt)
     // 更新物理引擎
     _context.getPhysicsEngine().update(dt);
     _context.getCamera().update(dt);
+
     // 更新所有游戏对象
     for (auto it = _game_objects.begin(); it != _game_objects.end();)
     {
@@ -46,6 +48,7 @@ void engine::scene::Scene::update(float dt)
             it = _game_objects.erase(it);
         }
     }
+    _ui_manager->update(dt, _context);
     processPendingAdditions();
 }
 
@@ -63,6 +66,7 @@ void engine::scene::Scene::render()
             game_object->render(_context);
         }
     }
+    _ui_manager->render(_context);
 }
 
 void engine::scene::Scene::handleInput()
@@ -71,6 +75,11 @@ void engine::scene::Scene::handleInput()
     {
         return;
     }
+    if (_ui_manager->handleInput(_context))
+    {
+        return;
+    }
+
     for (auto it = _game_objects.begin(); it != _game_objects.end();)
     {
         if (*it && !(*it)->getNeedRemove())
