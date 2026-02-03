@@ -13,6 +13,7 @@
 #include "../../engine/object/game_object.h"
 #include "../../engine/render/camera.h"
 #include "../../engine/render/animation.h"
+#include "../../engine/render/text_renderer.h"
 #include "../component/ai_component.h"
 #include "../component/ai/patrol_behavior.h"
 #include "../component/ai/jump_behavior.h"
@@ -82,12 +83,12 @@ void game::scene::GameScene::update(float dt)
 void game::scene::GameScene::render()
 {
     Scene::render();
+    testTextRenderer();
 }
 
 void game::scene::GameScene::handleInput()
 {
     Scene::handleInput();
-    testSaveandLoad();
 }
 
 void game::scene::GameScene::clean()
@@ -394,17 +395,10 @@ void game::scene::GameScene::toNextLevel(engine::object::GameObject *trigger)
     _scene_manager.requestReplaceScene(std::move(next_scene));
 }
 
-void game::scene::GameScene::testSaveandLoad()
+void game::scene::GameScene::testTextRenderer()
 {
-    auto input_manager = _context.getInputManager();
-    if (input_manager.isActionPressed("attack"))
-    {
-        _game_session_data->saveToFile("assets/saves/save.json");
-    }
-    if (input_manager.isActionPressed("pause"))
-    {
-        _game_session_data->loadFromFile("assets/saves/save.json");
-        spdlog::info("Current health: {}", _game_session_data->getCurrentHealth());
-        spdlog::info("Max health: {}", _game_session_data->getMaxHealth());
-    }
+    auto &text_renderer = _context.getTextRenderer();
+    const auto &camera = _context.getCamera();
+    text_renderer.drawUIText("UI Text", "assets/fonts/VonwaonBitmap-16px.ttf", 32, glm::vec2(100.0f), {0.0f, 1.0f, 0.0f, 1.0f});
+    text_renderer.drawText(camera, "World Text", "assets/fonts/VonwaonBitmap-16px.ttf", 32, glm::vec2(200.0f));
 }

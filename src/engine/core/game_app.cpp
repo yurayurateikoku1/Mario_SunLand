@@ -7,6 +7,7 @@
 #include "../resource/resource_manager.h"
 #include "../audio/audio_player.h"
 #include "../render/camera.h"
+#include "../render/text_renderer.h"
 #include "../render/render.h"
 #include "../input/input_manager.h"
 #include "../object/game_object.h"
@@ -151,6 +152,20 @@ namespace engine::core
         return true;
     }
 
+    bool GameApp::initTextRenderer()
+    {
+        try
+        {
+            _text_renderer = std::make_unique<engine::render::TextRenderer>(_sdl_renderer, _resource_manager.get());
+        }
+        catch (const std::exception &e)
+        {
+            spdlog::error("TextRenderer init failed: {},{},{}", e.what(), __FILE__, __LINE__);
+            return false;
+        }
+        return true;
+    }
+
     bool GameApp::initCamera()
     {
         try
@@ -198,7 +213,8 @@ namespace engine::core
     {
         try
         {
-            _context = std::make_unique<engine::core::Context>(*_input_manager, *_renderer, *_resource_manager, *_camera, *_physics_engine, *_audio_player);
+            _context = std::make_unique<engine::core::Context>(*_input_manager, *_renderer, *_resource_manager, *_camera,
+                                                               *_text_renderer, *_physics_engine, *_audio_player);
         }
         catch (const std::exception &e)
         {
@@ -258,6 +274,10 @@ namespace engine::core
             return false;
         }
         if (!initPhysicsEngine())
+        {
+            return false;
+        }
+        if (!initTextRenderer())
         {
             return false;
         }

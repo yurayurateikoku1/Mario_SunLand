@@ -7,6 +7,7 @@ namespace engine::render
 {
     class Renderer;
     class Camera;
+    class TextRenderer;
 }
 
 namespace engine::resource
@@ -41,12 +42,14 @@ namespace engine::core
         /// @brief 物理引擎
         engine::physics::PhysicsEngine &_physics_engine;
         engine::audio::AudioPlayer &_audio_player;
+        engine::render::TextRenderer &_text_renderer;
 
     public:
         Context(engine::input::InputManager &input_manager,
                 engine::render::Renderer &render,
                 engine::resource::ResourceManager &resource_manager,
                 engine::render::Camera &camera,
+                engine::render::TextRenderer &text_renderer,
                 engine::physics::PhysicsEngine &physics_engine,
                 engine::audio::AudioPlayer &audio_player);
         Context(const Context &) = delete;
@@ -58,6 +61,7 @@ namespace engine::core
         engine::render::Renderer &getRender() const { return _renderer; }
         engine::resource::ResourceManager &getResourceManager() const { return _resource_manager; }
         engine::render::Camera &getCamera() const { return _camera; }
+        engine::render::TextRenderer &getTextRenderer() const { return _text_renderer; }
         engine::physics::PhysicsEngine &getPhysicsEngine() const { return _physics_engine; }
         engine::audio::AudioPlayer &getAudioPlayer() const { return _audio_player; }
     };

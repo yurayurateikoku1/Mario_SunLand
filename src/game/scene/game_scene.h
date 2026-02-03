@@ -41,6 +41,6 @@ namespace game::scene
         void toNextLevel(engine::object::GameObject *trigger);
         std::string levelNameToPath(const std::string &level_name) const { return "assets/maps/" + level_name + ".tmj"; };
 
-        void testSaveandLoad();
+        void testTextRenderer();
     };
 }
