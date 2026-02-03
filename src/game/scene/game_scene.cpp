@@ -20,12 +20,19 @@
 #include "../../engine/physics/physics_engine.h"
 #include "../../engine/physics/collider.h"
 #include "../../engine/audio/audio_player.h"
+#include "../../engine/scene/scene_manager.h"
+#include "../data/session_data.h"
 #include <spdlog/spdlog.h>
 #include <SDL3/SDL_rect.h>
 #include <iostream>
-game::scene::GameScene::GameScene(const std::string &name, engine::core::Context &context, engine::scene::SceneManager &scene_manager)
-    : Scene(name, context, scene_manager)
+game::scene::GameScene::GameScene(engine::core::Context &context, engine::scene::SceneManager &scene_manager, std::shared_ptr<game::data::SessionData> session_data)
+    : Scene("GameScene", context, scene_manager), _game_session_data(std::move(session_data))
 {
+    if (!_game_session_data)
+    {
+        _game_session_data = std::make_shared<game::data::SessionData>();
+    }
+
     spdlog::info("GameScene created");
 }
 
@@ -80,6 +87,7 @@ void game::scene::GameScene::render()
 void game::scene::GameScene::handleInput()
 {
     Scene::handleInput();
+    testSaveandLoad();
 }
 
 void game::scene::GameScene::clean()
@@ -90,7 +98,8 @@ void game::scene::GameScene::clean()
 bool game::scene::GameScene::initlevel()
 {
     engine::scene::LevelLoader level_loader;
-    if (!level_loader.loadLevel("assets/maps/level1.tmj", *this))
+    auto level_path = _game_session_data->getMapPath();
+    if (!level_loader.loadLevel(level_path, *this))
     {
         spdlog::error("Failed to load level");
         return false;
@@ -133,6 +142,17 @@ bool game::scene::GameScene::initplayer()
     if (!player_component)
     {
         spdlog::error("Failed to add player component");
+        return false;
+    }
+
+    if (auto health_component = _player->getComponent<engine::component::HealthComponent>(); health_component)
+    {
+        health_component->setMaxHealth(_game_session_data->getMaxHealth());
+        health_component->setCurrentHealth(_game_session_data->getCurrentHealth());
+    }
+    else
+    {
+        spdlog::error("Failed to find health component");
         return false;
     }
 
@@ -229,6 +249,14 @@ void game::scene::GameScene::handleObjectCollisions()
         {
             objcet2->getComponent<game::component::PlayerComponent>()->takeDamage(1);
         }
+        else if (objcet1->getName() == "player" && objcet2->getTarget() == "next_level")
+        {
+            toNextLevel(objcet2);
+        }
+        else if (objcet2->getName() == "player" && objcet1->getTarget() == "next_level")
+        {
+            toNextLevel(objcet1);
+        }
     }
 }
 
@@ -260,6 +288,7 @@ void game::scene::GameScene::playerVsEnemyCollision(engine::object::GameObject *
         // 玩家跳起效果
         player->getComponent<engine::component::PhysicsComponent>()->_velocity.y = -300.0f;
         _context.getAudioPlayer().playSound("assets/audio/punch2a.mp3");
+        _game_session_data->addScore(10);
     }
     // 踩踏判断失败，玩家受伤
     else
@@ -276,7 +305,7 @@ void game::scene::GameScene::playerVsItemCollision(engine::object::GameObject *p
     }
     else if (item->getName() == "gem")
     {
-        // TODO: 加分
+        _game_session_data->addScore(5);
     }
     item->setNeedRemove(true); // 标记道具为待删除状态
     auto item_aabb = item->getComponent<engine::component::ColliderComponent>()->getWorldAABB();
@@ -296,10 +325,24 @@ void game::scene::GameScene::handleTileTriggers()
             // 如果是玩家碰到了危险瓦片，就受伤
             if (obj->getName() == "player")
             {
-                obj->getComponent<game::component::PlayerComponent>()->takeDamage(1);
+                handlePlayerDamage(1);
             }
         }
     }
+}
+
+void game::scene::GameScene::handlePlayerDamage(int damage)
+{
+    auto player_component = _player->getComponent<game::component::PlayerComponent>();
+    if (!player_component->takeDamage(damage))
+    {
+        return;
+    }
+    if (player_component->getDead())
+    {
+        spdlog::info("Game over");
+    }
+    _game_session_data->setCurrentHealth(player_component->getHealthComponent()->getCurrentHealth());
 }
 
 void game::scene::GameScene::createEffect(const glm::vec2 &center_pos, const std::string &tag)
@@ -340,4 +383,28 @@ void game::scene::GameScene::createEffect(const glm::vec2 &center_pos, const std
     animation_component->playAnimation("effect");
 
     safeAddGameObject(std::move(effect_obj)); // 安全添加特效对象
+}
+
+void game::scene::GameScene::toNextLevel(engine::object::GameObject *trigger)
+{
+    auto scene_name = trigger->getName();
+    auto max_path = levelNameToPath(scene_name);
+    _game_session_data->setNextLevel(max_path);
+    auto next_scene = std::make_unique<game::scene::GameScene>(_context, _scene_manager, _game_session_data);
+    _scene_manager.requestReplaceScene(std::move(next_scene));
+}
+
+void game::scene::GameScene::testSaveandLoad()
+{
+    auto input_manager = _context.getInputManager();
+    if (input_manager.isActionPressed("attack"))
+    {
+        _game_session_data->saveToFile("assets/saves/save.json");
+    }
+    if (input_manager.isActionPressed("pause"))
+    {
+        _game_session_data->loadFromFile("assets/saves/save.json");
+        spdlog::info("Current health: {}", _game_session_data->getCurrentHealth());
+        spdlog::info("Max health: {}", _game_session_data->getMaxHealth());
+    }
 }

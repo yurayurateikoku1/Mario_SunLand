@@ -20,6 +20,7 @@
 #include <spdlog/spdlog.h>
 #include <fstream>
 #include <glm/vec2.hpp>
+#include <glm/glm.hpp>
 #include <filesystem>
 bool engine::scene::LevelLoader::loadLevel(const std::string &level_path, Scene &scene)
 {
@@ -190,6 +191,36 @@ void engine::scene::LevelLoader::loadObjectLayer(const nlohmann::json &layer_jso
         // 如果gid为0 代表绘制的形状 可能是碰撞盒 触发器
         if (gid == 0)
         {
+            if (object.value("point", false))
+            {
+                continue;
+            }
+            else if (object.value("ellipse", false))
+            {
+                continue;
+            }
+            else if (object.value("polygon", false))
+            {
+                continue;
+            }
+            else
+            {
+                const std::string &object_name = object.value("name", "Unamed");
+                auto game_object = std::make_unique<engine::object::GameObject>(object_name);
+                auto positon = glm::vec2(object.value("x", 0.0f), object.value("y", 0.0f));
+                auto dst_size = glm::vec2(object.value("width", 0.0f), object.value("height", 0.0f));
+                auto rotaion = object.value("rotation", 0.0f);
+                game_object->addComponent<engine::component::TransformComponent>(positon, glm::vec2(1.0f), rotaion);
+                auto collider = std::make_unique<engine::physics::AABBCollider>(dst_size);
+                auto *cc = game_object->addComponent<engine::component::ColliderComponent>(std::move(collider));
+                cc->setTrigger(object.value("trigger", true));
+                game_object->addComponent<engine::component::PhysicsComponent>(&scene.getContext().getPhysicsEngine(), false);
+                if (auto tag = getTileProperty<std::string>(object, "tag"); tag)
+                {
+                    game_object->setTarget(tag.value());
+                }
+                scene.addGameObject(std::move(game_object));
+            }
         }
         else
         {

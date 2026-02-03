@@ -271,7 +271,7 @@ namespace engine::core
             return false;
         }
 
-        auto scene = std::make_unique<game::scene::GameScene>("GameScene", *_context, *_scene_manager);
+        auto scene = std::make_unique<game::scene::GameScene>(*_context, *_scene_manager);
         _scene_manager->requestPushScene(std::move(scene));
 
         _is_running = true;
