@@ -4,6 +4,7 @@
 #include "../object/game_object.h"
 #include "../render/camera.h"
 #include "../core/context.h"
+#include "../core/game_state.h"
 #include "../ui/ui_manager.h"
 #include "../physics/physics_engine.h"
 #include <algorithm>
@@ -27,9 +28,12 @@ void engine::scene::Scene::update(float dt)
     {
         return;
     }
-    // 更新物理引擎
-    _context.getPhysicsEngine().update(dt);
-    _context.getCamera().update(dt);
+    if (_context.getGameState().isPlaying())
+    {
+        // 更新物理引擎
+        _context.getPhysicsEngine().update(dt);
+        _context.getCamera().update(dt);
+    }
 
     // 更新所有游戏对象
     for (auto it = _game_objects.begin(); it != _game_objects.end();)

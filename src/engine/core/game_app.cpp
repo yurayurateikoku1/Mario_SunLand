@@ -4,6 +4,7 @@
 #include <spdlog/spdlog.h>
 #include "time.h"
 #include "context.h"
+#include "game_state.h"
 #include "../resource/resource_manager.h"
 #include "../audio/audio_player.h"
 #include "../render/camera.h"
@@ -17,6 +18,7 @@
 #include "../component/physics_component.h"
 #include "../scene/scene_manager.h"
 #include "../../game/scene/game_scene.h"
+#include "../../game/scene/title_scene.h"
 #include "config.h"
 namespace engine::core
 {
@@ -50,6 +52,11 @@ namespace engine::core
             render();
         }
         close();
+    }
+
+    void GameApp::registerSceneSutep(std::function<void(engine::scene::SceneManager &)> scene_setup_func)
+    {
+        _scene_setup_func = std::move(scene_setup_func);
     }
 
     bool GameApp::initConfig()
@@ -211,12 +218,27 @@ namespace engine::core
         return true;
     }
 
+    bool GameApp::initGameState()
+    {
+        try
+        {
+            _game_state = std::make_unique<engine::core::GameState>(_window, _sdl_renderer);
+        }
+        catch (const std::exception &e)
+        {
+            spdlog::error("GameState init failed: {},{},{}", e.what(), __FILE__, __LINE__);
+            return false;
+        }
+
+        return true;
+    }
+
     bool GameApp::initContext()
     {
         try
         {
             _context = std::make_unique<engine::core::Context>(*_input_manager, *_renderer, *_resource_manager, *_camera,
-                                                               *_text_renderer, *_physics_engine, *_audio_player);
+                                                               *_text_renderer, *_physics_engine, *_audio_player, *_game_state);
         }
         catch (const std::exception &e)
         {
@@ -243,6 +265,12 @@ namespace engine::core
     bool GameApp::init()
     {
         spdlog::info("GameApp init ...");
+        if (!_scene_setup_func)
+        {
+            spdlog::error("Scene setup function is not set");
+            return false;
+        }
+
         if (!initConfig())
         {
             return false;
@@ -283,6 +311,10 @@ namespace engine::core
         {
             return false;
         }
+        if (!initGameState())
+        {
+            return false;
+        }
         if (!initContext())
         {
             return false;
@@ -293,8 +325,7 @@ namespace engine::core
             return false;
         }
 
-        auto scene = std::make_unique<game::scene::GameScene>(*_context, *_scene_manager);
-        _scene_manager->requestPushScene(std::move(scene));
+        _scene_setup_func(*_scene_manager);
 
         _is_running = true;
         spdlog::info("GameApp init success");

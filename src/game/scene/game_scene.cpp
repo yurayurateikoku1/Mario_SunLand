@@ -1,7 +1,10 @@
 #include "game_scene.h"
+#include "menu_scene.h"
+#include "end_scene.h"
 #include "../../engine/scene/level_loader.h"
 #include "../../engine/input/input_manager.h"
 #include "../../engine/core/context.h"
+#include "../../engine/core/game_state.h"
 #include "../../engine/component/transform_component.h"
 #include "../../engine/component/sprite_component.h"
 #include "../../engine/component/physics_component.h"
@@ -51,7 +54,8 @@ void game::scene::GameScene::init()
         return;
     }
     spdlog::info("GameScene initializing ...");
-
+    _context.getGameState().setState(engine::core::State::Playing);
+    _game_session_data->syncHighScore("assets/save.json");
     if (!initlevel())
     {
         spdlog::error("GameScene initlevel failed");
@@ -91,6 +95,16 @@ void game::scene::GameScene::update(float dt)
     Scene::update(dt);
     handleObjectCollisions();
     handleTileTriggers();
+
+    if (_player)
+    {
+        auto pos = _player->getComponent<engine::component::TransformComponent>()->getPosition();
+        auto world_rect = _context.getPhysicsEngine().getWorldBounds();
+        if (world_rect && pos.y > world_rect->position.y + world_rect->size.y + 100.0f)
+        {
+            showEndScene(false);
+        }
+    }
 }
 
 void game::scene::GameScene::render()
@@ -101,6 +115,11 @@ void game::scene::GameScene::render()
 void game::scene::GameScene::handleInput()
 {
     Scene::handleInput();
+    if (_context.getInputManager().isActionPressed("pause"))
+    {
+        spdlog::info("GameScene handleInput pause");
+        _scene_manager.requestPushScene(std::make_unique<MenuScene>(_context, _scene_manager, _game_session_data));
+    }
 }
 
 void game::scene::GameScene::clean()
@@ -136,6 +155,7 @@ bool game::scene::GameScene::initlevel()
 
     auto world_size = main_layer->getComponent<engine::component::TileLayerComponent>()->geWorldSize();
     _context.getCamera().setLimitBounds(engine::utils::Rect(glm::vec2(0, 0), world_size));
+    _context.getCamera().setPosition(glm::vec2(0, 0));
 
     _context.getPhysicsEngine().setWorldBounds(engine::utils::Rect(glm::vec2(0, 0), world_size));
 
@@ -232,13 +252,12 @@ bool game::scene::GameScene::initEnemyAndItem()
 
 bool game::scene::GameScene::initUI()
 {
-    if (!_ui_manager->init(glm::vec2(640.0f, 360.0f)))
+    if (!_ui_manager->init(_context.getGameState().getLogicalSize()))
     {
         return false;
     }
     createScoreUI();
     createHealthUI();
-    createTestButton();
     return true;
 }
 
@@ -281,6 +300,14 @@ void game::scene::GameScene::handleObjectCollisions()
         else if (objcet2->getName() == "player" && objcet1->getTarget() == "next_level")
         {
             toNextLevel(objcet1);
+        }
+        else if (objcet1->getName() == "player" && objcet2->getName() == "win")
+        {
+            showEndScene(true);
+        }
+        else if (objcet2->getName() == "player" && objcet1->getName() == "win")
+        {
+            showEndScene(true);
         }
     }
 }
@@ -420,6 +447,13 @@ void game::scene::GameScene::toNextLevel(engine::object::GameObject *trigger)
     _scene_manager.requestReplaceScene(std::move(next_scene));
 }
 
+void game::scene::GameScene::showEndScene(bool is_win)
+{
+    _game_session_data->setIsWin(is_win);
+    auto end_scene = std::make_unique<game::scene::EndScene>(_context, _scene_manager, _game_session_data);
+    _scene_manager.requestPushScene(std::move(end_scene));
+}
+
 void game::scene::GameScene::createScoreUI()
 {
     auto score_text = "Score:" + std::to_string(_game_session_data->getCurrentScore());
@@ -461,6 +495,8 @@ void game::scene::GameScene::createHealthUI()
         glm::vec2 icon_size = {icon_width, icon_height};
 
         auto fg_icon = std::make_unique<engine::ui::UIImage>(full_heart_tex, icon_pos, icon_size);
+        bool is_visible = (i < current_health);
+        fg_icon->setVisible(is_visible);
         _health_panel->addChild(std::move(fg_icon));
     }
     _ui_manager->addElement(std::move(health_panel));
@@ -496,21 +532,4 @@ void game::scene::GameScene::updateHealthWithUI()
     {
         _health_panel->getChildren()[i]->setVisible(i - max_health < current_health);
     }
-}
-
-void game::scene::GameScene::createTestButton()
-{
-    auto test_button = std::make_unique<engine::ui::UIButton>(_context, "assets/textures/UI/buttons/Start1.png",
-                                                              "assets/textures/UI/buttons/Start2.png",
-                                                              "assets/textures/UI/buttons/Start3.png",
-                                                              glm::vec2(100.0f, 100.0f),
-                                                              glm::vec2(0.0f, 0.0f),
-                                                              [this]()
-                                                              { this->testButtonClicked(); });
-    _ui_manager->addElement(std::move(test_button));
-}
-
-void game::scene::GameScene::testButtonClicked()
-{
-    spdlog::info("Test button clicked");
 }

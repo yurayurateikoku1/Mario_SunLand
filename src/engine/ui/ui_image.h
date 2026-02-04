@@ -21,7 +21,7 @@ namespace engine::ui
         const engine::render::Sprite &getSprite() const { return _sprite; }
         void setSprite(engine::render::Sprite sprite) { _sprite = std::move(sprite); }
 
-        std::string_view getTextureId() const { return _sprite.getTextureId(); }
+        std::string getTextureId() const { return _sprite.getTextureId(); }
         void setTextureId(const std::string &texture_id) { _sprite.setTextureId(texture_id); }
 
         const std::optional<SDL_Rect> &getSourceRect() const { return _sprite.getSourceRect(); }

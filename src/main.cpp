@@ -1,8 +1,15 @@
 #include "engine/core/game_app.h"
 #include <SDL3/SDL_main.h>
 #include <spdlog/spdlog.h>
+#include "engine/scene/scene_manager.h"
+#include "game/scene/title_scene.h"
 #include <spdlog/sinks/basic_file_sink.h>
 #include <iostream>
+void setupInitialScene(engine::scene::SceneManager &sceneManager)
+{
+    auto titleScene = std::make_unique<game::scene::TitleScene>(sceneManager.getContext(), sceneManager);
+    sceneManager.requestPushScene(std::move(titleScene));
+}
 int main(int, char **)
 {
 
@@ -22,6 +29,7 @@ int main(int, char **)
     }
 
     engine::core::GameApp app;
+    app.registerSceneSutep(setupInitialScene);
     app.run();
 
     spdlog::shutdown();

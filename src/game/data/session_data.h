@@ -46,6 +46,6 @@ namespace game::data
         bool saveToFile(const std::string &file_path) const;
         bool loadFromFile(const std::string &file_path);
 
-        void sysncHighScore(const std::string &file_path);
+        void syncHighScore(const std::string &file_path);
     };
 }

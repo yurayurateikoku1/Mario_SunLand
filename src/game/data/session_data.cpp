@@ -108,8 +108,8 @@ bool game::data::SessionData::loadFromFile(const std::string &file_path)
         _current_score = _level_score = j.value("level_score", 0);
         _current_health = _level_health = j.value("level_health", 3);
         _max_health = j.value("map_health", 3);
-        _high_score = j.value("high_score", 0);
-        _map_path = j.value("map_path", "asset/maps/level1.tmj");
+        _high_score = glm::max(_high_score, j.value("high_score", 0));
+        _map_path = j.value("map_path", "assets/maps/level1.tmj");
         return true;
     }
     catch (const std::exception &e)
@@ -120,19 +120,41 @@ bool game::data::SessionData::loadFromFile(const std::string &file_path)
     }
 }
 
-// void game::data::SessionData::sysncHighScore(const std::string &file_path)
-// {
-//     try
-//     {
-//         std::ofstream file(file_path);
-//         if (!file.is_open())
-//         {
-//             spdlog::error("Failed to save config file: {}", file_path);
-//             return;
-//         }
-//     }
-//     catch (const std::exception &e)
-//     {
-//         spdlog::error("Failed to save config file: {},{},{},{}", file_path, e.what(), __FILE__, __LINE__);
-//     }
-// }
+void game::data::SessionData::syncHighScore(const std::string &file_path)
+{
+    try
+    {
+        // 打开文件进行读取
+        auto path = std::filesystem::path(file_path);
+        std::fstream fs(path);
+        if (!fs.is_open())
+        {
+            return;
+        }
+
+        // 从文件解析 JSON 数据
+        nlohmann::json j;
+        fs >> j;
+        auto high_score_in_file = j.value("high_score", 0);
+
+        // 根据文件中的最高分和当前最高分来决定处理方式
+        if (high_score_in_file < _high_score)
+        { // 文件中的最高分 低于 当前最高分
+            j["high_score"] = _high_score;
+            fs.seekp(0);     // 文件指针回到文件开头
+            fs << j.dump(4); // 将JSON对象写入文件
+        }
+        else if (high_score_in_file > _high_score)
+        { // 文件中的最高分 高于 当前最高分
+            _high_score = high_score_in_file;
+        }
+        else
+        {
+        }
+        fs.close();
+    }
+    catch (const std::exception &e)
+    {
+        spdlog::error("Failed to sync high score: {},{},{},{}", file_path, e.what(), __FILE__, __LINE__);
+    }
+}

@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <functional>
 struct SDL_Window;
 struct SDL_Renderer;
 struct MIX_Mixer;
@@ -35,6 +36,7 @@ namespace engine::core
     class Time;
     class Config;
     class Context;
+    class GameState;
     /// @brief 主应用程序,初始化SDL,运行主循环
     class GameApp final
     {
@@ -43,6 +45,8 @@ namespace engine::core
         SDL_Renderer *_sdl_renderer{nullptr};
         MIX_Mixer *_mixer = nullptr;
         bool _is_running{false};
+
+        std::function<void(engine::scene::SceneManager &)> _scene_setup_func;
 
         std::unique_ptr<engine::core::Time> _time{nullptr};
         std::unique_ptr<engine::resource::ResourceManager> _resource_manager{nullptr};
@@ -55,6 +59,7 @@ namespace engine::core
         std::unique_ptr<engine::scene::SceneManager> _scene_manager{nullptr};
         std::unique_ptr<engine::physics::PhysicsEngine> _physics_engine{nullptr};
         std::unique_ptr<engine::audio::AudioPlayer> _audio_player{nullptr};
+        std::unique_ptr<engine::core::GameState> _game_state{nullptr};
 
     public:
         GameApp();
@@ -72,6 +77,7 @@ namespace engine::core
 
         void run();
 
+        void registerSceneSutep(std::function<void(engine::scene::SceneManager &)> scene_setup_func);
         [[nodiscard]] bool initConfig();
         [[nodiscard]] bool initSDL();
         [[nodiscard]] bool initTime();
@@ -82,6 +88,7 @@ namespace engine::core
         [[nodiscard]] bool initCamera();
         [[nodiscard]] bool initInputManager();
         [[nodiscard]] bool initPhysicsEngine();
+        [[nodiscard]] bool initGameState();
         [[nodiscard]] bool initContext();
         [[nodiscard]] bool initSceneManager();
     };
