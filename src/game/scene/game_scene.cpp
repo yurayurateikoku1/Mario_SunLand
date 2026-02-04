@@ -92,10 +92,43 @@ void game::scene::GameScene::init()
 
 void game::scene::GameScene::update(float dt)
 {
-    Scene::update(dt);
+    if (!_is_initialized)
+    {
+        return;
+    }
+
+    // 1. 更新物理引擎（生成碰撞对）
+    if (_context.getGameState().isPlaying())
+    {
+        _context.getPhysicsEngine().update(dt);
+        _context.getCamera().update(dt);
+    }
+
+    // 2. 在清理死亡对象之前处理碰撞（碰撞对指针仍有效）
     handleObjectCollisions();
     handleTileTriggers();
 
+    // 3. 更新所有游戏对象（包括清理标记为删除的对象）
+    for (auto it = _game_objects.begin(); it != _game_objects.end();)
+    {
+        if (*it && !(*it)->getNeedRemove())
+        {
+            (*it)->update(dt, _context);
+            ++it;
+        }
+        else
+        {
+            if (*it)
+            {
+                (*it)->clean();
+            }
+            it = _game_objects.erase(it);
+        }
+    }
+    _ui_manager->update(dt, _context);
+    processPendingAdditions();
+
+    // 4. 检查玩家是否掉出世界
     if (_player)
     {
         auto pos = _player->getComponent<engine::component::TransformComponent>()->getPosition();
@@ -263,11 +296,15 @@ bool game::scene::GameScene::initUI()
 
 void game::scene::GameScene::handleObjectCollisions()
 {
-    auto collision_pairs = _context.getPhysicsEngine().getCollisionPairs();
+    auto &collision_pairs = _context.getPhysicsEngine().getCollisionPairs();
     for (const auto &pair : collision_pairs)
     {
         auto objcet1 = pair.first;
         auto objcet2 = pair.second;
+        if (!objcet1 || !objcet2)
+        {
+            continue;
+        }
 
         if (objcet1->getName() == "player" && objcet2->getTarget() == "enemy")
         {
@@ -296,18 +333,22 @@ void game::scene::GameScene::handleObjectCollisions()
         else if (objcet1->getName() == "player" && objcet2->getTarget() == "next_level")
         {
             toNextLevel(objcet2);
+            return;
         }
         else if (objcet2->getName() == "player" && objcet1->getTarget() == "next_level")
         {
             toNextLevel(objcet1);
+            return;
         }
         else if (objcet1->getName() == "player" && objcet2->getName() == "win")
         {
-            showEndScene(true);
+            handleWinTrigger();
+            return;
         }
         else if (objcet2->getName() == "player" && objcet1->getName() == "win")
         {
-            showEndScene(true);
+            handleWinTrigger();
+            return;
         }
     }
 }
@@ -447,6 +488,21 @@ void game::scene::GameScene::toNextLevel(engine::object::GameObject *trigger)
     _scene_manager.requestReplaceScene(std::move(next_scene));
 }
 
+void game::scene::GameScene::handleWinTrigger()
+{
+    if (_game_session_data->isLastRound())
+    {
+        showEndScene(true);
+    }
+    else
+    {
+        _game_session_data->advanceRound();
+        _game_session_data->setNextLevel("assets/maps/level1.tmj");
+        auto next_scene = std::make_unique<game::scene::GameScene>(_context, _scene_manager, _game_session_data);
+        _scene_manager.requestReplaceScene(std::move(next_scene));
+    }
+}
+
 void game::scene::GameScene::showEndScene(bool is_win)
 {
     _game_session_data->setIsWin(is_win);
@@ -489,14 +545,13 @@ void game::scene::GameScene::createHealthUI()
         auto bg_icon = std::make_unique<engine::ui::UIImage>(empty_heart_tex, icon_pos, icon_size);
         _health_panel->addChild(std::move(bg_icon));
     }
-    for (int i = 0; i < current_health; ++i)
+    for (int i = 0; i < max_health; ++i)
     {
         glm::vec2 icon_pos = {start_x + i * (icon_width + spacing), start_y};
         glm::vec2 icon_size = {icon_width, icon_height};
 
         auto fg_icon = std::make_unique<engine::ui::UIImage>(full_heart_tex, icon_pos, icon_size);
-        bool is_visible = (i < current_health);
-        fg_icon->setVisible(is_visible);
+        fg_icon->setVisible(i < current_health);
         _health_panel->addChild(std::move(fg_icon));
     }
     _ui_manager->addElement(std::move(health_panel));

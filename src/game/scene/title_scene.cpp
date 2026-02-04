@@ -163,7 +163,7 @@ namespace game::scene
 
         // 创建 Credits 标签
         auto credits_label = std::make_unique<engine::ui::UILabel>(_context.getTextRenderer(),
-                                                                   "SunnyLand Credits: XXX - 2025",
+                                                                   " Credits: Yurayurateukoku - 2025",
                                                                    "assets/fonts/VonwaonBitmap-16px.ttf",
                                                                    16,
                                                                    engine::utils::FColor{0.8f, 0.8f, 0.8f, 1.0f});

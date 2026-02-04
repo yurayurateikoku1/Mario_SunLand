@@ -53,6 +53,7 @@ void game::data::SessionData::reset()
     _current_score = 0;
     _level_health = 3;
     _level_score = 0;
+    _current_round = 0;
     _map_path = "assets/maps/level1.tmj";
     spdlog::info("Session data reset");
 }

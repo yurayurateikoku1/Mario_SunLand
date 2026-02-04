@@ -15,6 +15,8 @@ namespace game::data
         bool _is_win = false;
         int _level_health = 3;
         int _level_score = 0;
+        int _current_round = 0;
+        static constexpr int MAX_ROUNDS = 5;
         std::string _map_path = "assets/maps/level1.tmj";
 
     public:
@@ -41,6 +43,9 @@ namespace game::data
         void setLevelScore(int score);
         void setMapPath(const std::string &path);
         void setIsWin(bool is_win) { _is_win = is_win; }
+        int getCurrentRound() const { return _current_round; }
+        bool isLastRound() const { return _current_round >= MAX_ROUNDS - 1; }
+        void advanceRound() { ++_current_round; }
         void reset();
         void setNextLevel(const std::string &map_path);
         bool saveToFile(const std::string &file_path) const;
