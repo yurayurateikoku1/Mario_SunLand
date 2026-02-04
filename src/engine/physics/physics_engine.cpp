@@ -165,16 +165,6 @@ void engine::physics::PhysicsEngine::resolveTileCollision(engine::component::Phy
         return;
     }
 
-    // 调试日志
-    static int frame_counter = 0;
-    bool should_log = (frame_counter++ % 60 == 0);
-    if (should_log)
-    {
-        spdlog::info("Physics: obj={}, aabb=({},{}) size=({},{}), vel=({},{})",
-                     obj->getName(), obj_pos.x, obj_pos.y, obj_size.x, obj_size.y,
-                     pc->_velocity.x, pc->_velocity.y);
-    }
-
     for (auto *layer : _collision_tile_layers)
     {
         if (!layer)

@@ -55,5 +55,8 @@ namespace game::scene
         void addScoreWithUI(int score);
         void healWithUI(int amount);
         void updateHealthWithUI();
+
+        void createTestButton();
+        void testButtonClicked();
     };
 }

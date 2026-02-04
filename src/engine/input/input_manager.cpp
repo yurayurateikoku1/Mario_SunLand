@@ -4,8 +4,9 @@
 #include "../core/config.h"
 #include <glm/vec2.hpp>
 engine::input::InputManager::InputManager(SDL_Renderer *sdl_renderer, const engine::core::Config *config)
+    : _sdl_renderer(sdl_renderer)
 {
-    if (!sdl_renderer)
+    if (!_sdl_renderer)
     {
         spdlog::error("SDL_Renderer is null");
         throw std::runtime_error("SDL_Renderer is null");

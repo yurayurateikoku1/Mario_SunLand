@@ -1,0 +1,18 @@
+#pragma once
+#include "ui_state.h"
+
+namespace engine::ui::state
+{
+    class UINormalState final : public UIState
+    {
+        friend class engine::ui::UIInteractive;
+
+    public:
+        UINormalState(engine::ui::UIInteractive *owner) : UIState(owner) {}
+        ~UINormalState() override = default;
+
+    private:
+        void enter() override;
+        std::unique_ptr<UIState> handleInput(engine::core::Context &) override;
+    };
+}
