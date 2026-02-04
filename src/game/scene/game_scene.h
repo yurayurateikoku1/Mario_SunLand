@@ -10,6 +10,11 @@ namespace game::data
 {
     class SessionData;
 }
+namespace engine::ui
+{
+    class UILabel;
+    class UIPanel;
+}
 namespace game::scene
 {
     /// @brief 主要的游戏场景
@@ -17,6 +22,9 @@ namespace game::scene
     {
         engine::object::GameObject *_player{nullptr};
         std::shared_ptr<game::data::SessionData> _game_session_data{nullptr};
+
+        engine::ui::UILabel *_score_label{nullptr};
+        engine::ui::UIPanel *_health_panel{nullptr};
 
     public:
         GameScene(engine::core::Context &context, engine::scene::SceneManager &scene_manager, std::shared_ptr<game::data::SessionData> session_data = nullptr);
@@ -42,6 +50,10 @@ namespace game::scene
         void toNextLevel(engine::object::GameObject *trigger);
         std::string levelNameToPath(const std::string &level_name) const { return "assets/maps/" + level_name + ".tmj"; };
 
-        void testTextRenderer();
+        void createScoreUI();
+        void createHealthUI();
+        void addScoreWithUI(int score);
+        void healWithUI(int amount);
+        void updateHealthWithUI();
     };
 }
