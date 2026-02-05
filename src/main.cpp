@@ -17,7 +17,7 @@ int main(int, char **)
     {
         auto file_logger = spdlog::basic_logger_mt("basic_logger", "log.txt");
         spdlog::set_default_logger(file_logger);
-        spdlog::set_level(spdlog::level::trace);
+        spdlog::set_level(spdlog::level::off);
         spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
         spdlog::flush_on(spdlog::level::info);
     }
